@@ -1,0 +1,84 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/ios/Flutter/.last_build_id
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Android Studio/IntelliJ
+.android/
+.cxx/
+.externalNativeBuild/
+captures/
+.gradle/
+local.properties
+.settings/
+*.apk
+*.aar
+*.jks
+
+# iOS
+Pods/
+DerivedData/
+*.xcworkspace
+*.xcuserdata
+*.xcuserstate
+*.lock
+build/
+flutter_export_environment.sh
+
+# Firebase and Environment files
+firebase_options.dart
+.env
+.env.*
+
+# Generated plugin files
+GeneratedPluginRegistrant.*
+
+# Google Services JSON & plist (optional: if you want to exclude them from repo)
+google-services.json
+GoogleService-Info.plist
+
+# Others
+*.iml
+*.lock
+*.orig
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# MacOS
+*.DS_Store
+
+# VS Code
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# Logs
+*.log
+
+# Node modules (if applicable)
+node_modules/
+
+# Coverage reports
+coverage/
