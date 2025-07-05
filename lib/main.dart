@@ -7,7 +7,7 @@ import 'global/providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // already set up by you
+  await Firebase.initializeApp(); // Already set up by you
   runApp(const MyApp());
 }
 
