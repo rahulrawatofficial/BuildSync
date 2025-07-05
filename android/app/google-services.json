@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "621758593715",
+    "project_id": "buildsync-3f3c9",
+    "storage_bucket": "buildsync-3f3c9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:621758593715:android:cbf01609b8d2e3eca94ec6",
+        "android_client_info": {
+          "package_name": "com.buildsyncapp.BuildSync"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeqeJcRYYhVltuCvLrjGfKN--IT-S4OXU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,4 @@
-package com.example.buildsync
+package com.buildsyncapp.BuildSync
 
 import io.flutter.embedding.android.FlutterActivity
 
