@@ -1,4 +1,5 @@
-import 'package:buildsync/features/home/presentation/home_page.dart';
+import 'package:buildsync/features/admin/presentation/admin_dashboard.dart';
+// import 'package:buildsync/features/home/presentation/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login_page.dart';
@@ -21,7 +22,7 @@ class SplashPage extends StatelessWidget {
 
         final user = snapshot.data;
         if (user != null) {
-          return const HomePage(); // User is signed in
+          return const AdminDashboard(); // User is signed in
         } else {
           return LoginPage(); // User not signed in
         }
