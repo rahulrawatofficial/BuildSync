@@ -43,6 +43,59 @@ class _EditProjectPageState extends State<EditProjectPage> {
     loadProjectData();
   }
 
+  Future<void> deleteProject() async {
+    final companyId = AppSessionManager().companyId;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete Project'),
+            content: const Text(
+              'Are you sure you want to delete this project? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('companies')
+            .doc(companyId)
+            .collection('projects')
+            .doc(widget.projectId)
+            .delete();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Project deleted successfully')),
+          );
+          Navigator.pop(context); // Go back after deletion
+        }
+      } catch (e) {
+        print('Delete failed: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to delete project')),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> loadProjectData() async {
     final companyId = AppSessionManager().companyId;
     final doc =
@@ -205,7 +258,15 @@ class _EditProjectPageState extends State<EditProjectPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Project')),
+      appBar: AppBar(
+        title: const Text('Edit Project'),
+        actions: [
+          IconButton(
+            onPressed: deleteProject,
+            icon: Icon(Icons.delete, color: Colors.red),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Center(

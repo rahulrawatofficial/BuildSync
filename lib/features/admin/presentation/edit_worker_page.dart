@@ -1,3 +1,4 @@
+import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/shared/widgets/custom_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -38,9 +39,19 @@ class _EditWorkerPageState extends State<EditWorkerPage> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
+    final companyId = AppSessionManager().companyId;
+    if (companyId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Company ID not found')));
+      return;
+    }
+
     setState(() => isLoading = true);
 
     await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
         .collection('users')
         .doc(widget.workerId)
         .update({
@@ -141,7 +152,7 @@ class _EditWorkerPageState extends State<EditWorkerPage> {
                   const SizedBox(height: 24),
 
                   CustomButton(
-                    text: 'Update Project',
+                    text: 'Update Member',
                     onPressed: isLoading ? null : updateWorker,
                     isLoading: isLoading,
                     icon: Icons.save,

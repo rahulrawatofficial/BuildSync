@@ -75,29 +75,49 @@ class AdminDrawer extends StatelessWidget {
         children: [
           DrawerHeader(
             decoration: BoxDecoration(color: Colors.blue),
-            child: Text(
-              userName!,
-              style: TextStyle(color: Colors.white, fontSize: 24),
+            child: Row(
+              children: [
+                Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: Image.asset("assets/images/adp.png"),
+                ),
+                SizedBox(width: 20),
+                Text(
+                  userName!,
+                  style: TextStyle(color: Colors.white, fontSize: 24),
+                ),
+              ],
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.dashboard),
+            leading: const Icon(Icons.dashboard, color: Colors.green),
             title: const Text('Dashboard'),
-            onTap: () => context.go('/admin'),
+            // onTap: () => context.go('/admin'),
           ),
           ListTile(
-            leading: const Icon(Icons.people),
+            leading: const Icon(Icons.people, color: Colors.amber),
             title: const Text('Workers'),
             onTap: () => context.push('/worker-list'),
           ),
           ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () => context.go('/settings'),
+            leading: const Icon(Icons.task, color: Colors.purple),
+            title: const Text('Tasks'),
+            onTap: () => context.push('/task-list'),
           ),
           ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Logout'),
+            leading: const Icon(Icons.settings, color: Colors.blue),
+            title: const Text('Settings'),
+            // onTap: () => context.go('/settings'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Logout', style: TextStyle(color: Colors.red)),
             onTap: () async {
               // Sign out using AuthCubit
               await context.read<AuthCubit>().signOut();

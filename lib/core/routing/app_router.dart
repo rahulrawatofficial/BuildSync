@@ -1,9 +1,13 @@
+import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/core/routing/router_utils.dart';
+import 'package:buildsync/features/admin/presentation/add_task_page.dart';
 import 'package:buildsync/features/admin/presentation/admin_dashboard.dart';
 import 'package:buildsync/features/admin/presentation/create_project_page.dart';
 import 'package:buildsync/features/admin/presentation/create_worker_page.dart';
 import 'package:buildsync/features/admin/presentation/edit_project_page.dart';
+import 'package:buildsync/features/admin/presentation/edit_task_page.dart';
 import 'package:buildsync/features/admin/presentation/edit_worker_page.dart';
+import 'package:buildsync/features/admin/presentation/task_list_page.dart';
 import 'package:buildsync/features/admin/presentation/worker_list_page.dart';
 import 'package:buildsync/features/auth/presentation/splash_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -61,6 +65,25 @@ class AppRouter {
           final workerData = extra['workerData'] as Map<String, dynamic>;
 
           return EditWorkerPage(workerId: workerId, workerData: workerData);
+        },
+      ),
+      GoRoute(
+        path: '/task-list',
+        builder: (context, state) => const TaskListPage(),
+      ),
+      GoRoute(
+        path: '/add-task/:projectId',
+        builder: (context, state) {
+          final projectId = state.pathParameters['projectId']!;
+          return AddTaskPage(projectId: projectId);
+        },
+      ),
+      GoRoute(
+        path: '/edit-task/:projectId/:taskId',
+        builder: (context, state) {
+          final projectId = state.pathParameters['projectId']!;
+          final taskId = state.pathParameters['taskId']!;
+          return EditTaskPage(projectId: projectId, taskId: taskId);
         },
       ),
     ],

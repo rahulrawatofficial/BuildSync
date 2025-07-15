@@ -1,3 +1,5 @@
+import 'package:buildsync/core/config/app_setion_manager.dart';
+import 'package:buildsync/shared/widgets/custom_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -21,15 +23,27 @@ class _CreateWorkerPageState extends State<CreateWorkerPage> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
+    final companyId = AppSessionManager().companyId;
+    if (companyId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Company ID not found')));
+      return;
+    }
+
     setState(() => isLoading = true);
 
-    await FirebaseFirestore.instance.collection('users').add({
-      'name': name,
-      'email': email,
-      'phone': _phoneController.text.trim(),
-      'role': role,
-      'createdAt': DateTime.now().toIso8601String(),
-    });
+    await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
+        .collection('users')
+        .add({
+          'name': name,
+          'email': email,
+          'phone': _phoneController.text.trim(),
+          'role': role,
+          'createdAt': DateTime.now().toIso8601String(),
+        });
 
     setState(() => isLoading = false);
     if (context.mounted) Navigator.pop(context);
@@ -118,20 +132,11 @@ class _CreateWorkerPageState extends State<CreateWorkerPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  ElevatedButton.icon(
+                  CustomButton(
+                    text: 'Add Member',
                     onPressed: isLoading ? null : submitWorker,
-                    icon:
-                        isLoading
-                            ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                            : const Icon(Icons.save),
-                    label: const Text('Add Member'),
+                    isLoading: isLoading,
+                    icon: Icons.save,
                   ),
                 ],
               ),

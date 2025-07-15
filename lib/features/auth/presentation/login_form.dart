@@ -1,4 +1,5 @@
 import 'package:buildsync/global/blocs/auth_cubit.dart';
+import 'package:buildsync/shared/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -49,12 +50,16 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: const InputDecoration(labelText: 'Password'),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
+              // ElevatedButton(
+              //   onPressed: state is AuthLoading ? null : _login,
+              //   child:
+              //       state is AuthLoading
+              //           ? const CircularProgressIndicator()
+              //           : const Text('Login'),
+              // ),
+              CustomButton(
                 onPressed: state is AuthLoading ? null : _login,
-                child:
-                    state is AuthLoading
-                        ? const CircularProgressIndicator()
-                        : const Text('Login'),
+                text: "Login",
               ),
             ],
           ),

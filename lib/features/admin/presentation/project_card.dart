@@ -41,7 +41,7 @@ class ProjectCard extends StatelessWidget {
               const CircleAvatar(
                 radius: 24,
                 backgroundColor: Colors.blueAccent,
-                child: Icon(Icons.work, color: Colors.white),
+                child: Icon(Icons.home_work_outlined, color: Colors.white),
               ),
               const SizedBox(width: 16),
               Expanded(

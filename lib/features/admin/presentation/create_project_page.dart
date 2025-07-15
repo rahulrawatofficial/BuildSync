@@ -1,5 +1,6 @@
 import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/core/extensions/string_extensions.dart';
+import 'package:buildsync/shared/widgets/custom_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -222,20 +223,11 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  ElevatedButton.icon(
+                  CustomButton(
+                    text: 'Create Project',
                     onPressed: isLoading ? null : submitProject,
-                    icon:
-                        isLoading
-                            ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                            : const Icon(Icons.check),
-                    label: const Text('Create Project'),
+                    isLoading: isLoading,
+                    icon: Icons.save,
                   ),
                 ],
               ),
