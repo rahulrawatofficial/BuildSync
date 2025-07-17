@@ -3,6 +3,8 @@ import 'package:buildsync/core/routing/router_utils.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/add_expenses_page.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/edit_expenses_page.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/expenses_list_page.dart';
+import 'package:buildsync/features/admin/presentation/Reports/edit_reports_page.dart';
+import 'package:buildsync/features/admin/presentation/Reports/reports_list_page.dart';
 import 'package:buildsync/features/admin/presentation/Tasks/add_task_page.dart';
 import 'package:buildsync/features/admin/presentation/admin_dashboard.dart';
 import 'package:buildsync/features/admin/presentation/Project/create_project_page.dart';
@@ -106,6 +108,17 @@ class AppRouter {
           final projectId = state.pathParameters['projectId']!;
           final expenseId = state.pathParameters['expenseId']!;
           return EditExpensePage(projectId: projectId, expenseId: expenseId);
+        },
+      ),
+      GoRoute(
+        path: '/reports-list',
+        builder: (context, state) => const ReportsListPage(),
+      ),
+      GoRoute(
+        path: '/edit-report/:projectId',
+        builder: (context, state) {
+          final projectId = state.pathParameters['projectId']!;
+          return EditReportPage(projectId: projectId);
         },
       ),
     ],

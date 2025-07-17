@@ -119,9 +119,12 @@ class AdminDrawer extends StatelessWidget {
             onTap: () => context.push('/expense-list'),
           ),
           ListTile(
-            leading: const Icon(Icons.settings, color: Colors.blue),
-            title: const Text('Settings'),
-            // onTap: () => context.go('/settings'),
+            leading: const Icon(
+              Icons.document_scanner_outlined,
+              color: Colors.lightGreen,
+            ),
+            title: const Text('Reports'),
+            onTap: () => context.push('/reports-list'),
           ),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
