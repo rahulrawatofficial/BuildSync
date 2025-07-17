@@ -23,6 +23,7 @@ class _EditExpensePageState extends State<EditExpensePage> {
   final _amountController = TextEditingController();
   String _category = 'Material'; // default fallback
   bool _loading = true;
+  bool _deleting = false;
   late String companyId;
 
   @override
@@ -81,13 +82,68 @@ class _EditExpensePageState extends State<EditExpensePage> {
     if (context.mounted) Navigator.pop(context);
   }
 
+  Future<void> _deleteExpense() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Delete Expense'),
+            content: const Text(
+              'Are you sure you want to delete this expense? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _deleting = true);
+
+    await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
+        .collection('projects')
+        .doc(widget.projectId)
+        .collection('expenses')
+        .doc(widget.expenseId)
+        .delete();
+
+    setState(() => _deleting = false);
+
+    if (context.mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Expense')),
+      appBar: AppBar(
+        title: const Text('Edit Expense'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: _deleting ? null : _deleteExpense,
+          ),
+        ],
+      ),
       body:
           _loading
               ? const Center(child: CircularProgressIndicator())
+              : _deleting
+              ? const Center(
+                child: CircularProgressIndicator(color: Colors.red),
+              )
               : SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Form(

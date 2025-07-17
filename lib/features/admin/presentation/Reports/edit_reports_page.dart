@@ -145,6 +145,19 @@ class _EditReportPageState extends State<EditReportPage> {
     List<QueryDocumentSnapshot> tasks,
     List<QueryDocumentSnapshot> expenses,
   ) {
+    // Calculate totals
+    final double taskTotal = tasks.fold<double>(
+      0,
+      (sum, t) => sum + (t['estimatedCost'] ?? 0),
+    );
+    final double expenseTotal = expenses.fold<double>(
+      0,
+      (sum, e) => sum + (e['amount'] ?? 0),
+    );
+    final double grandTotal = taskTotal + expenseTotal;
+    final double tax = grandTotal * 0.13; // 13% Tax
+    final double finalTotal = grandTotal + tax;
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
@@ -228,9 +241,7 @@ class _EditReportPageState extends State<EditReportPage> {
                   'Total Tasks Cost',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  '\$${tasks.fold<double>(0, (sum, t) => sum + (t['estimatedCost'] ?? 0)).toStringAsFixed(2)}',
-                ),
+                Text('\$${taskTotal.toStringAsFixed(2)}'),
               ],
             ),
             const SizedBox(height: 8),
@@ -241,9 +252,7 @@ class _EditReportPageState extends State<EditReportPage> {
                   'Total Expenses',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  '\$${expenses.fold<double>(0, (sum, e) => sum + (e['amount'] ?? 0)).toStringAsFixed(2)}',
-                ),
+                Text('\$${expenseTotal.toStringAsFixed(2)}'),
               ],
             ),
             const SizedBox(height: 8),
@@ -255,11 +264,44 @@ class _EditReportPageState extends State<EditReportPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '\$${(tasks.fold<double>(0, (sum, t) => sum + (t['estimatedCost'] ?? 0)) + expenses.fold<double>(0, (sum, e) => sum + (e['amount'] ?? 0))).toStringAsFixed(2)}',
+                  '\$${grandTotal.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Tax (13%)',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text('\$${tax.toStringAsFixed(2)}'),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Final Total',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+                Text(
+                  '\$${finalTotal.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
                   ),
                 ),
               ],
