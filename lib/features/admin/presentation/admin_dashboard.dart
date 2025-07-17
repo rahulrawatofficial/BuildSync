@@ -1,5 +1,5 @@
 import 'package:buildsync/core/config/app_setion_manager.dart';
-import 'package:buildsync/features/admin/presentation/project_card.dart';
+import 'package:buildsync/features/admin/presentation/Project/project_card.dart';
 import 'package:buildsync/global/blocs/auth_cubit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -109,6 +109,14 @@ class AdminDrawer extends StatelessWidget {
             leading: const Icon(Icons.task, color: Colors.purple),
             title: const Text('Tasks'),
             onTap: () => context.push('/task-list'),
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.monetization_on_outlined,
+              color: Colors.brown,
+            ),
+            title: const Text('Expenses'),
+            onTap: () => context.push('/expense-list'),
           ),
           ListTile(
             leading: const Icon(Icons.settings, color: Colors.blue),

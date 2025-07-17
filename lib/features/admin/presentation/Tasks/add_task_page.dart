@@ -2,21 +2,20 @@ import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class EditTaskPage extends StatefulWidget {
-  final String projectId;
-  final String taskId;
+import 'package:buildsync/core/config/app_setion_manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
-  const EditTaskPage({
-    super.key,
-    required this.projectId,
-    required this.taskId,
-  });
+class AddTaskPage extends StatefulWidget {
+  final String projectId;
+
+  const AddTaskPage({super.key, required this.projectId});
 
   @override
-  State<EditTaskPage> createState() => _EditTaskPageState();
+  State<AddTaskPage> createState() => _AddTaskPageState();
 }
 
-class _EditTaskPageState extends State<EditTaskPage> {
+class _AddTaskPageState extends State<AddTaskPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
@@ -24,38 +23,14 @@ class _EditTaskPageState extends State<EditTaskPage> {
   final List<String> _selectedWorkerIds = [];
 
   late String companyId;
-  bool _loading = true;
-  String _status = 'todo'; // default fallback
+  String _status = 'todo'; // default status
+
+  bool _loading = false;
 
   @override
   void initState() {
     super.initState();
     companyId = AppSessionManager().companyId!;
-    _loadTask();
-  }
-
-  Future<void> _loadTask() async {
-    final doc =
-        await FirebaseFirestore.instance
-            .collection('companies')
-            .doc(companyId)
-            .collection('projects')
-            .doc(widget.projectId)
-            .collection('tasks')
-            .doc(widget.taskId)
-            .get();
-
-    final data = doc.data();
-    if (data != null) {
-      _titleController.text = data['title'] ?? '';
-      _descController.text = data['description'] ?? '';
-      _costController.text = (data['estimatedCost'] ?? '').toString();
-      _status = data['status'] ?? 'todo';
-      final workers = List<String>.from(data['assignedWorkerIds'] ?? []);
-      _selectedWorkerIds.addAll(workers);
-    }
-
-    setState(() => _loading = false);
   }
 
   Future<void> _submit() async {
@@ -69,6 +44,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
       'estimatedCost': double.tryParse(_costController.text.trim()) ?? 0,
       'assignedWorkerIds': _selectedWorkerIds,
       'status': _status,
+      'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
@@ -78,8 +54,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
         .collection('projects')
         .doc(widget.projectId)
         .collection('tasks')
-        .doc(widget.taskId)
-        .update(taskData);
+        .add(taskData);
 
     setState(() => _loading = false);
 
@@ -89,7 +64,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Task')),
+      appBar: AppBar(title: const Text('Add Task')),
       body:
           _loading
               ? const Center(child: CircularProgressIndicator())
@@ -138,10 +113,10 @@ class _EditTaskPageState extends State<EditTaskPage> {
                             child: Text('Active'),
                           ),
                           DropdownMenuItem(
-                            value: 'blocked',
+                            value: 'Blocked',
                             child: Text('Blocked'),
                           ),
-                          DropdownMenuItem(value: 'done', child: Text('Done')),
+                          DropdownMenuItem(value: 'Done', child: Text('Done')),
                         ],
                         onChanged: (value) {
                           if (value != null) setState(() => _status = value);
@@ -149,12 +124,11 @@ class _EditTaskPageState extends State<EditTaskPage> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'Assigned Workers',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        'Assign Workers',
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 8),
                       _WorkerSelector(
-                        key: ValueKey(_selectedWorkerIds.join(',')),
                         companyId: companyId,
                         selectedIds: _selectedWorkerIds,
                         onChanged: (newList) {
@@ -169,8 +143,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
                       Center(
                         child: ElevatedButton.icon(
                           onPressed: _submit,
-                          icon: const Icon(Icons.save),
-                          label: const Text('Save Changes'),
+                          icon: const Icon(Icons.check),
+                          label: const Text('Create Task'),
                         ),
                       ),
                     ],
@@ -190,7 +164,6 @@ class _WorkerSelector extends StatelessWidget {
     required this.companyId,
     required this.selectedIds,
     required this.onChanged,
-    super.key,
   });
 
   @override
@@ -212,7 +185,6 @@ class _WorkerSelector extends StatelessWidget {
           return const Text('No workers found');
         }
 
-        final selected = List<String>.from(selectedIds);
         final workers = snapshot.data!.docs;
 
         return ListView(
@@ -223,21 +195,59 @@ class _WorkerSelector extends StatelessWidget {
                 final data = doc.data() as Map<String, dynamic>;
                 final workerName = data['name'] ?? 'Unnamed';
                 final workerId = doc.id;
-                final isSelected = selected.contains(workerId);
+                final workerEmail = data['email'] ?? '';
+                final isSelected = selectedIds.contains(workerId);
 
-                return CheckboxListTile(
-                  title: Text(workerName),
-                  subtitle: Text(data['email'] ?? ''),
-                  value: isSelected,
-                  onChanged: (checked) {
-                    final updated = List<String>.from(selected);
-                    if (checked == true && !updated.contains(workerId)) {
-                      updated.add(workerId);
-                    } else {
-                      updated.remove(workerId);
-                    }
-                    onChanged(updated);
-                  },
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 6,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: isSelected ? 6 : 2,
+                  color: isSelected ? Colors.blue.shade50 : Colors.white,
+                  child: CheckboxListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    title: Text(
+                      workerName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    subtitle: Text(
+                      workerEmail,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                    value: isSelected,
+                    onChanged: (checked) {
+                      final updated = [...selectedIds];
+                      if (checked == true) {
+                        updated.add(workerId);
+                      } else {
+                        updated.remove(workerId);
+                      }
+                      onChanged(updated);
+                    },
+                    secondary: CircleAvatar(
+                      backgroundColor: Colors.blueAccent,
+                      child: Text(
+                        workerName.isNotEmpty
+                            ? workerName[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    controlAffinity: ListTileControlAffinity.trailing,
+                  ),
                 );
               }).toList(),
         );

@@ -1,14 +1,17 @@
 import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/core/routing/router_utils.dart';
-import 'package:buildsync/features/admin/presentation/add_task_page.dart';
+import 'package:buildsync/features/admin/presentation/Expenses/add_expenses_page.dart';
+import 'package:buildsync/features/admin/presentation/Expenses/edit_expenses_page.dart';
+import 'package:buildsync/features/admin/presentation/Expenses/expenses_list_page.dart';
+import 'package:buildsync/features/admin/presentation/Tasks/add_task_page.dart';
 import 'package:buildsync/features/admin/presentation/admin_dashboard.dart';
-import 'package:buildsync/features/admin/presentation/create_project_page.dart';
-import 'package:buildsync/features/admin/presentation/create_worker_page.dart';
-import 'package:buildsync/features/admin/presentation/edit_project_page.dart';
-import 'package:buildsync/features/admin/presentation/edit_task_page.dart';
-import 'package:buildsync/features/admin/presentation/edit_worker_page.dart';
-import 'package:buildsync/features/admin/presentation/task_list_page.dart';
-import 'package:buildsync/features/admin/presentation/worker_list_page.dart';
+import 'package:buildsync/features/admin/presentation/Project/create_project_page.dart';
+import 'package:buildsync/features/admin/presentation/Workers/create_worker_page.dart';
+import 'package:buildsync/features/admin/presentation/Project/edit_project_page.dart';
+import 'package:buildsync/features/admin/presentation/Tasks/edit_task_page.dart';
+import 'package:buildsync/features/admin/presentation/Workers/edit_worker_page.dart';
+import 'package:buildsync/features/admin/presentation/Tasks/task_list_page.dart';
+import 'package:buildsync/features/admin/presentation/Workers/worker_list_page.dart';
 import 'package:buildsync/features/auth/presentation/splash_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
@@ -84,6 +87,25 @@ class AppRouter {
           final projectId = state.pathParameters['projectId']!;
           final taskId = state.pathParameters['taskId']!;
           return EditTaskPage(projectId: projectId, taskId: taskId);
+        },
+      ),
+      GoRoute(
+        path: '/expense-list',
+        builder: (context, state) => const ExpenseListPage(),
+      ),
+      GoRoute(
+        path: '/add-expense/:projectId',
+        builder: (context, state) {
+          final projectId = state.pathParameters['projectId']!;
+          return AddExpensePage(projectId: projectId);
+        },
+      ),
+      GoRoute(
+        path: '/edit-expense/:projectId/:expenseId',
+        builder: (context, state) {
+          final projectId = state.pathParameters['projectId']!;
+          final expenseId = state.pathParameters['expenseId']!;
+          return EditExpensePage(projectId: projectId, expenseId: expenseId);
         },
       ),
     ],
