@@ -25,6 +25,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
   late String companyId;
   bool _loading = true;
+  bool _deleting = false;
   String _status = 'todo'; // default fallback
 
   @override
@@ -86,13 +87,68 @@ class _EditTaskPageState extends State<EditTaskPage> {
     if (context.mounted) Navigator.pop(context);
   }
 
+  Future<void> _deleteTask() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Delete Task'),
+            content: const Text(
+              'Are you sure you want to delete this task? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _deleting = true);
+
+    await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
+        .collection('projects')
+        .doc(widget.projectId)
+        .collection('tasks')
+        .doc(widget.taskId)
+        .delete();
+
+    setState(() => _deleting = false);
+
+    if (context.mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Task')),
+      appBar: AppBar(
+        title: const Text('Edit Task'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: _deleting ? null : _deleteTask,
+          ),
+        ],
+      ),
       body:
           _loading
               ? const Center(child: CircularProgressIndicator())
+              : _deleting
+              ? const Center(
+                child: CircularProgressIndicator(color: Colors.red),
+              )
               : SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Form(
