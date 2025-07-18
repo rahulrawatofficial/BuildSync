@@ -1,6 +1,10 @@
 import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class EditReportPage extends StatefulWidget {
   final String projectId;
@@ -128,6 +132,27 @@ class _EditReportPageState extends State<EditReportPage> {
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: _generatePDF,
+                        icon: const Icon(
+                          Icons.picture_as_pdf,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Generate PDF Bill',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
                             vertical: 14,
@@ -309,6 +334,136 @@ class _EditReportPageState extends State<EditReportPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _generatePDF() async {
+    final pdf = pw.Document();
+
+    // Load logo
+    final logoData = await rootBundle.load('assets/images/adp.png');
+    final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+
+    // Calculate totals
+    final double taskTotal = taskDocs.fold<double>(
+      0,
+      (sum, t) => sum + (t['estimatedCost'] ?? 0),
+    );
+    final double expenseTotal = expenseDocs.fold<double>(
+      0,
+      (sum, e) => sum + (e['amount'] ?? 0),
+    );
+    final double grandTotal = taskTotal + expenseTotal;
+    final double tax = grandTotal * 0.13;
+    final double finalTotal = grandTotal + tax;
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build:
+            (context) => [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Image(logoImage, width: 80, height: 80),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text(
+                        "Invoice",
+                        style: pw.TextStyle(
+                          fontSize: 22,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.Text("Date: ${DateTime.now().toLocal()}"),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 16),
+              pw.Text(
+                "Project: ${projectData['title'] ?? 'Untitled'}",
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 12),
+
+              // Tasks
+              pw.Text(
+                "Tasks:",
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Table.fromTextArray(
+                headers: ["Task", "Status", "Cost"],
+                data:
+                    taskDocs.map((t) {
+                      final task = t.data() as Map<String, dynamic>;
+                      return [
+                        task['title'] ?? '',
+                        task['status'] ?? '',
+                        "\$${(task['estimatedCost'] ?? 0).toStringAsFixed(2)}",
+                      ];
+                    }).toList(),
+              ),
+              pw.SizedBox(height: 10),
+
+              // Expenses
+              pw.Text(
+                "Expenses:",
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Table.fromTextArray(
+                headers: ["Name", "Details", "Amount"],
+                data:
+                    expenseDocs.map((e) {
+                      final exp = e.data() as Map<String, dynamic>;
+                      return [
+                        exp['name'] ?? '',
+                        exp['details'] ?? '',
+                        "\$${(exp['amount'] ?? 0).toStringAsFixed(2)}",
+                      ];
+                    }).toList(),
+              ),
+              pw.Divider(),
+
+              // Totals
+              pw.Align(
+                alignment: pw.Alignment.centerRight,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text("Tasks Total: \$${taskTotal.toStringAsFixed(2)}"),
+                    pw.Text(
+                      "Expenses Total: \$${expenseTotal.toStringAsFixed(2)}",
+                    ),
+                    pw.Text("Grand Total: \$${grandTotal.toStringAsFixed(2)}"),
+                    pw.Text("Tax (13%): \$${tax.toStringAsFixed(2)}"),
+                    pw.Text(
+                      "Final Total: \$${finalTotal.toStringAsFixed(2)}",
+                      style: pw.TextStyle(
+                        fontSize: 18,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+      ),
+    );
+
+    // Show PDF Preview
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
     );
   }
 }

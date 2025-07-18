@@ -8,6 +8,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class EditProjectPage extends StatefulWidget {
   final String projectId;
@@ -41,6 +44,81 @@ class _EditProjectPageState extends State<EditProjectPage> {
   void initState() {
     super.initState();
     loadProjectData();
+  }
+
+  Future<void> generateQuotePdf() async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build:
+            (context) => [
+              pw.Header(
+                level: 0,
+                child: pw.Text(
+                  'Project Quote',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('Project Title: $title'),
+              pw.Text('Client Name: $clientName'),
+              pw.Text('Address: $address'),
+              pw.Text('Status: ${status.toUpperCase()}'),
+              pw.SizedBox(height: 10),
+              pw.Text(
+                'Start Date: ${startDate != null ? dateFormat.format(startDate!) : 'N/A'}',
+              ),
+              pw.Text(
+                'End Date: ${endDate != null ? dateFormat.format(endDate!) : 'N/A'}',
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('Budget: \$${budget?.toStringAsFixed(2) ?? '0.00'} CAD'),
+              pw.SizedBox(height: 10),
+              if (notes.isNotEmpty) pw.Text('Notes: $notes'),
+              pw.SizedBox(height: 20),
+
+              pw.Text(
+                'Expected Expenses:',
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 10),
+
+              pw.Table.fromTextArray(
+                headers: ['Title', 'Amount (CAD)'],
+                data:
+                    expenses
+                        .map((e) => [e['title'] ?? '', e['amount'] ?? ''])
+                        .toList(),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
+                border: pw.TableBorder.all(),
+              ),
+
+              pw.SizedBox(height: 20),
+              pw.Divider(),
+              pw.Align(
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text(
+                  'Generated on ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
+                  style: pw.TextStyle(fontSize: 10),
+                ),
+              ),
+            ],
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
   Future<void> deleteProject() async {
@@ -452,7 +530,27 @@ class _EditProjectPageState extends State<EditProjectPage> {
                     icon: const Icon(Icons.photo_library),
                     label: const Text('Pick Images'),
                   ),
-
+                  const SizedBox(height: 24),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: generateQuotePdf,
+                      icon: const Icon(
+                        Icons.picture_as_pdf,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Generate Quote',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   CustomButton(
                     text: 'Update Project',
