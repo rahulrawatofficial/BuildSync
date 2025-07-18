@@ -2,6 +2,7 @@ import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -340,18 +341,56 @@ class _EditReportPageState extends State<EditReportPage> {
   Future<void> _generatePDF() async {
     final pdf = pw.Document();
 
-    // Load logo
+    // Load logo from assets
     final logoData = await rootBundle.load('assets/images/adp.png');
     final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+
+    // Hardcoded data for now
+    const companyName = "ADP Group Inc.";
+    const companyAddress = "198 Dawn Dr, London, ON";
+    const gstNumber = "GST #743426009RT0001";
+    const email = "adpgroupinc@gmail.com";
+    const website = "www.adpgroupinc.ca";
+
+    const clientName = "Oakridge Group Inc.";
+    const clientAddress = "340 Highway 20, Hamilton, ON L0R 1P0";
+
+    const invoiceNumber = "INV002";
+    final invoiceDate = DateFormat('MM/dd/yyyy').format(DateTime.now());
+    const dueDate = "On Receipt";
+
+    // Hardcoded tasks and expenses
+    final taskDocs = [
+      {
+        "title": "Accessibility Sign",
+        "status": "Completed",
+        "estimatedCost": 339.00,
+      },
+      {
+        "title": "Parking Lines",
+        "status": "Completed",
+        "estimatedCost": 980.84,
+      },
+    ];
+
+    final expenseDocs = [
+      {
+        "name": "Paint Supplies",
+        "details": "White paint and brushes",
+        "amount": 120.50,
+      },
+      {"name": "Travel", "details": "Fuel for project", "amount": 75.00},
+    ];
 
     // Calculate totals
     final double taskTotal = taskDocs.fold<double>(
       0,
-      (sum, t) => sum + (t['estimatedCost'] ?? 0),
+      (sum, t) => sum + ((t['estimatedCost'] ?? 0) as double),
     );
+
     final double expenseTotal = expenseDocs.fold<double>(
       0,
-      (sum, e) => sum + (e['amount'] ?? 0),
+      (sum, e) => sum + ((e['amount'] ?? 0) as double),
     );
     final double grandTotal = taskTotal + expenseTotal;
     final double tax = grandTotal * 0.13;
@@ -362,6 +401,7 @@ class _EditReportPageState extends State<EditReportPage> {
         pageFormat: PdfPageFormat.a4,
         build:
             (context) => [
+              // Header
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
@@ -370,28 +410,48 @@ class _EditReportPageState extends State<EditReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        "Invoice",
+                        "INVOICE",
                         style: pw.TextStyle(
                           fontSize: 22,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
-                      pw.Text("Date: ${DateTime.now().toLocal()}"),
+                      pw.Text("Invoice #: $invoiceNumber"),
+                      pw.Text("Date: $invoiceDate"),
+                      pw.Text("Due: $dueDate"),
                     ],
                   ),
                 ],
               ),
               pw.SizedBox(height: 16),
+
+              // Company Info
               pw.Text(
-                "Project: ${projectData['title'] ?? 'Untitled'}",
+                companyName,
                 style: pw.TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
-              pw.SizedBox(height: 12),
+              pw.Text(companyAddress),
+              pw.Text(gstNumber),
+              pw.Text(email),
+              pw.Text(website, style: pw.TextStyle(color: PdfColors.blue)),
+              pw.SizedBox(height: 20),
 
-              // Tasks
+              // Bill To
+              pw.Text(
+                "Bill To:",
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Text(clientName),
+              pw.Text(clientAddress),
+              pw.SizedBox(height: 20),
+
+              // Tasks Table
               pw.Text(
                 "Tasks:",
                 style: pw.TextStyle(
@@ -402,18 +462,19 @@ class _EditReportPageState extends State<EditReportPage> {
               pw.Table.fromTextArray(
                 headers: ["Task", "Status", "Cost"],
                 data:
-                    taskDocs.map((t) {
-                      final task = t.data() as Map<String, dynamic>;
-                      return [
-                        task['title'] ?? '',
-                        task['status'] ?? '',
-                        "\$${(task['estimatedCost'] ?? 0).toStringAsFixed(2)}",
-                      ];
-                    }).toList(),
+                    taskDocs
+                        .map(
+                          (t) => [
+                            t['title'],
+                            t['status'],
+                            "\$${((t['estimatedCost'] ?? 0) as num).toDouble().toStringAsFixed(2)}",
+                          ],
+                        )
+                        .toList(),
               ),
-              pw.SizedBox(height: 10),
+              pw.SizedBox(height: 20),
 
-              // Expenses
+              // Expenses Table
               pw.Text(
                 "Expenses:",
                 style: pw.TextStyle(
@@ -424,18 +485,20 @@ class _EditReportPageState extends State<EditReportPage> {
               pw.Table.fromTextArray(
                 headers: ["Name", "Details", "Amount"],
                 data:
-                    expenseDocs.map((e) {
-                      final exp = e.data() as Map<String, dynamic>;
-                      return [
-                        exp['name'] ?? '',
-                        exp['details'] ?? '',
-                        "\$${(exp['amount'] ?? 0).toStringAsFixed(2)}",
-                      ];
-                    }).toList(),
+                    expenseDocs
+                        .map(
+                          (e) => [
+                            e['name'],
+                            e['details'],
+                            "\$${((e['amount'] ?? 0) as num).toDouble().toStringAsFixed(2)}",
+                          ],
+                        )
+                        .toList(),
               ),
+              pw.SizedBox(height: 20),
               pw.Divider(),
 
-              // Totals
+              // Totals Section
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Column(
@@ -461,9 +524,6 @@ class _EditReportPageState extends State<EditReportPage> {
       ),
     );
 
-    // Show PDF Preview
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 }

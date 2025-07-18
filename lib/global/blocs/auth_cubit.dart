@@ -1,3 +1,4 @@
+import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/features/auth/data/auth_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,6 +47,7 @@ class AuthCubit extends Cubit<AuthState> {
       final role = userDoc['role'];
 
       // Step 4: Emit success with user data
+      await AppSessionManager().loadSession();
       emit(AuthSuccess(uid: uid, companyId: companyId, role: role));
     } catch (e) {
       emit(AuthFailure(e.toString()));

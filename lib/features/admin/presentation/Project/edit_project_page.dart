@@ -6,6 +6,7 @@ import 'package:buildsync/shared/widgets/custom_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -49,26 +50,83 @@ class _EditProjectPageState extends State<EditProjectPage> {
   Future<void> generateQuotePdf() async {
     final pdf = pw.Document();
 
+    // ✅ Load logo
+    final logoData = await rootBundle.load('assets/images/adp.png');
+    final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+
+    // ✅ Hardcoded Company Info
+    const companyName = "ADP Group Inc.";
+    const companyAddress = "198 Dawn Dr, London, ON";
+    const gstNumber = "GST #743426009RT0001";
+    const email = "adpgroupinc@gmail.com";
+    const website = "www.adpgroupinc.ca";
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build:
             (context) => [
-              pw.Header(
-                level: 0,
-                child: pw.Text(
-                  'Project Quote',
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
+              // ✅ Header with Logo + Company Info
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Image(logoImage, width: 80),
+                      pw.SizedBox(height: 10),
+                      pw.Text(
+                        companyName,
+                        style: pw.TextStyle(
+                          fontSize: 14,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.Text(companyAddress),
+                      pw.Text(gstNumber),
+                      pw.Text(email),
+                      pw.Text(
+                        website,
+                        style: pw.TextStyle(color: PdfColors.blue),
+                      ),
+                    ],
                   ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text(
+                        'PROJECT QUOTE',
+                        style: pw.TextStyle(
+                          fontSize: 22,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'Generated on ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+
+              // ✅ Project Details
+              pw.Text(
+                'Project Details',
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.SizedBox(height: 10),
-              pw.Text('Project Title: $title'),
-              pw.Text('Client Name: $clientName'),
-              pw.Text('Address: $address'),
+              pw.Text('Title: ${title.isNotEmpty ? title : 'N/A'}'),
+              pw.Text(
+                'Client Name: ${clientName.isNotEmpty ? clientName : 'N/A'}',
+              ),
+              pw.Text('Address: ${address.isNotEmpty ? address : 'N/A'}'),
               pw.Text('Status: ${status.toUpperCase()}'),
               pw.SizedBox(height: 10),
               pw.Text(
@@ -78,47 +136,54 @@ class _EditProjectPageState extends State<EditProjectPage> {
                 'End Date: ${endDate != null ? dateFormat.format(endDate!) : 'N/A'}',
               ),
               pw.SizedBox(height: 10),
-              pw.Text('Budget: \$${budget?.toStringAsFixed(2) ?? '0.00'} CAD'),
-              pw.SizedBox(height: 10),
+              pw.Text('Budget: \$${(budget ?? 0).toStringAsFixed(2)} CAD'),
               if (notes.isNotEmpty) pw.Text('Notes: $notes'),
               pw.SizedBox(height: 20),
 
+              // ✅ Expenses Table
               pw.Text(
-                'Expected Expenses:',
+                'Expected Expenses',
                 style: pw.TextStyle(
                   fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.SizedBox(height: 10),
-
               pw.Table.fromTextArray(
                 headers: ['Title', 'Amount (CAD)'],
                 data:
                     expenses
-                        .map((e) => [e['title'] ?? '', e['amount'] ?? ''])
+                        .map(
+                          (e) => [
+                            e['title'] ?? '',
+                            '\$${(double.tryParse(e['amount'].toString()) ?? 0).toStringAsFixed(2)}',
+                          ],
+                        )
                         .toList(),
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
-                border: pw.TableBorder.all(),
+                cellAlignments: {
+                  0: pw.Alignment.centerLeft,
+                  1: pw.Alignment.centerRight,
+                },
+                border: pw.TableBorder.all(width: 0.5, color: PdfColors.grey),
               ),
-
               pw.SizedBox(height: 20),
+
+              // ✅ Footer
               pw.Divider(),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text(
-                  'Generated on ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
-                  style: pw.TextStyle(fontSize: 10),
+                  'Quote Generated on ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
                 ),
               ),
             ],
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
   Future<void> deleteProject() async {

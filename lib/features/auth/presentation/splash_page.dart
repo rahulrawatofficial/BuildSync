@@ -1,3 +1,4 @@
+import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/features/admin/presentation/admin_dashboard.dart';
 // import 'package:buildsync/features/home/presentation/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +10,7 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final companyId = AppSessionManager().companyId;
     return FutureBuilder<User?>(
       future: Future.delayed(const Duration(milliseconds: 500), () {
         return FirebaseAuth.instance.currentUser;
@@ -21,7 +23,7 @@ class SplashPage extends StatelessWidget {
         }
 
         final user = snapshot.data;
-        if (user != null) {
+        if (user != null && companyId != null) {
           return const AdminDashboard(); // User is signed in
         } else {
           return LoginPage(); // User not signed in
