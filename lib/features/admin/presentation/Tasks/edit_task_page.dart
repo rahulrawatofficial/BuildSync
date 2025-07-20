@@ -71,6 +71,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
       'assignedWorkerIds': _selectedWorkerIds,
       'status': _status,
       'updatedAt': FieldValue.serverTimestamp(),
+      'companyId': companyId,
     };
 
     await FirebaseFirestore.instance

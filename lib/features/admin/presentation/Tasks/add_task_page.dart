@@ -46,6 +46,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
       'status': _status,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
+      'companyId': companyId,
     };
 
     await FirebaseFirestore.instance

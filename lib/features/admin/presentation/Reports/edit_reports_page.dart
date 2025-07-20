@@ -20,12 +20,10 @@ class _EditReportPageState extends State<EditReportPage> {
   bool _loading = true;
   late String companyId;
   Map<String, dynamic> projectData = {};
-  String reportNotes = '';
-  double totalExpenses = 0;
-  int totalTasks = 0;
-  int completedTasks = 0;
-
   final _notesController = TextEditingController();
+
+  List<QueryDocumentSnapshot> taskDocs = [];
+  List<QueryDocumentSnapshot> expenseDocs = [];
 
   @override
   void initState() {
@@ -33,9 +31,6 @@ class _EditReportPageState extends State<EditReportPage> {
     companyId = AppSessionManager().companyId!;
     _loadReportData();
   }
-
-  List<QueryDocumentSnapshot> taskDocs = [];
-  List<QueryDocumentSnapshot> expenseDocs = [];
 
   Future<void> _loadReportData() async {
     final projectDoc =
@@ -57,7 +52,6 @@ class _EditReportPageState extends State<EditReportPage> {
             .doc(widget.projectId)
             .collection('tasks')
             .get();
-
     taskDocs = tasksSnapshot.docs;
 
     final expensesSnapshot =
@@ -68,7 +62,6 @@ class _EditReportPageState extends State<EditReportPage> {
             .doc(widget.projectId)
             .collection('expenses')
             .get();
-
     expenseDocs = expensesSnapshot.docs;
 
     setState(() => _loading = false);
@@ -92,7 +85,11 @@ class _EditReportPageState extends State<EditReportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Report')),
+      appBar: AppBar(
+        title: const Text('Edit Report'),
+        centerTitle: true,
+        elevation: 2,
+      ),
       body:
           _loading
               ? const Center(child: CircularProgressIndicator())
@@ -101,9 +98,31 @@ class _EditReportPageState extends State<EditReportPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Project: ${projectData['title'] ?? 'Untitled'}',
-                      style: Theme.of(context).textTheme.titleLarge,
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.business,
+                              color: Colors.blue,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                projectData['title'] ?? 'Untitled Project',
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -112,15 +131,46 @@ class _EditReportPageState extends State<EditReportPage> {
 
                     TextField(
                       controller: _notesController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Final Notes / Remarks',
-                        border: OutlineInputBorder(),
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
                       ),
                       maxLines: 4,
                     ),
-                    const SizedBox(height: 32),
-
-                    Center(
+                    const SizedBox(height: 80), // Space for sticky buttons
+                  ],
+                ),
+              ),
+      bottomNavigationBar:
+          _loading
+              ? null
+              : Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
+                      offset: const Offset(0, -1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _markComplete,
                         icon: const Icon(
@@ -128,20 +178,20 @@ class _EditReportPageState extends State<EditReportPage> {
                           color: Colors.white,
                         ),
                         label: const Text(
-                          'Mark as Completed',
+                          'Mark Completed',
                           style: TextStyle(color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Center(
+                    const SizedBox(width: 12),
+                    Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _generatePDF,
                         icon: const Icon(
@@ -149,14 +199,14 @@ class _EditReportPageState extends State<EditReportPage> {
                           color: Colors.white,
                         ),
                         label: const Text(
-                          'Generate PDF Bill',
+                          'Generate PDF',
                           style: TextStyle(color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.redAccent,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
@@ -171,7 +221,6 @@ class _EditReportPageState extends State<EditReportPage> {
     List<QueryDocumentSnapshot> tasks,
     List<QueryDocumentSnapshot> expenses,
   ) {
-    // Calculate totals
     final double taskTotal = tasks.fold<double>(
       0,
       (sum, t) => sum + (t['estimatedCost'] ?? 0),
@@ -181,7 +230,7 @@ class _EditReportPageState extends State<EditReportPage> {
       (sum, e) => sum + (e['amount'] ?? 0),
     );
     final double grandTotal = taskTotal + expenseTotal;
-    final double tax = grandTotal * 0.13; // 13% Tax
+    final double tax = grandTotal * 0.13;
     final double finalTotal = grandTotal + tax;
 
     return Card(
@@ -192,37 +241,32 @@ class _EditReportPageState extends State<EditReportPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blueAccent, Colors.lightBlue],
+            Row(
+              children: const [
+                Icon(Icons.summarize, color: Colors.blue),
+                SizedBox(width: 8),
+                Text(
+                  'Project Summary',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                'Project Summary',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              ],
             ),
-            const SizedBox(height: 16),
-
-            // Tasks Section
+            const SizedBox(height: 12),
             const Text(
               'Tasks',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             ...tasks.map((taskDoc) {
               final task = taskDoc.data() as Map<String, dynamic>;
               return ListTile(
+                dense: true,
                 contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.task_alt, color: Colors.green),
                 title: Text(task['title'] ?? 'Unnamed Task'),
                 subtitle: Text('Status: ${task['status'] ?? 'unknown'}'),
                 trailing: Text(
@@ -230,20 +274,22 @@ class _EditReportPageState extends State<EditReportPage> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               );
-            }).toList(),
+            }),
             const Divider(thickness: 1),
-
-            // Expenses Section
-            const SizedBox(height: 8),
             const Text(
               'Expenses',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             ...expenses.map((expDoc) {
               final expense = expDoc.data() as Map<String, dynamic>;
               return ListTile(
+                dense: true,
                 contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  Icons.attach_money,
+                  color: Colors.redAccent,
+                ),
                 title: Text(expense['name'] ?? 'Unnamed Expense'),
                 subtitle: Text(expense['details'] ?? ''),
                 trailing: Text(
@@ -254,86 +300,51 @@ class _EditReportPageState extends State<EditReportPage> {
                   ),
                 ),
               );
-            }).toList(),
-
+            }),
             const Divider(thickness: 1),
             const SizedBox(height: 8),
-
-            // Totals
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total Tasks Cost',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text('\$${taskTotal.toStringAsFixed(2)}'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total Expenses',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text('\$${expenseTotal.toStringAsFixed(2)}'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Grand Total',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '\$${grandTotal.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Tax (13%)',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text('\$${tax.toStringAsFixed(2)}'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Final Total',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-                Text(
-                  '\$${finalTotal.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
+            _buildTotalRow('Total Tasks Cost', taskTotal),
+            _buildTotalRow('Total Expenses', expenseTotal),
+            _buildTotalRow('Grand Total', grandTotal, color: Colors.blue),
+            _buildTotalRow('Tax (13%)', tax),
+            _buildTotalRow(
+              'Final Total',
+              finalTotal,
+              color: Colors.green,
+              bold: true,
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTotalRow(
+    String label,
+    double amount, {
+    Color color = Colors.black,
+    bool bold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.w500,
+              color: color,
+            ),
+          ),
+          Text(
+            '\$${amount.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
