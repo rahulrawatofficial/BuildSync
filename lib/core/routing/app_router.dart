@@ -3,6 +3,7 @@ import 'package:buildsync/core/routing/router_utils.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/add_expenses_page.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/edit_expenses_page.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/expenses_list_page.dart';
+import 'package:buildsync/features/admin/presentation/Project/projects_list_page.dart';
 import 'package:buildsync/features/admin/presentation/Reports/edit_reports_page.dart';
 import 'package:buildsync/features/admin/presentation/Reports/reports_list_page.dart';
 import 'package:buildsync/features/admin/presentation/Tasks/add_task_page.dart';
@@ -42,6 +43,10 @@ class AppRouter {
       GoRoute(
         path: '/home',
         builder: (context, state) => const AdminDashboard(),
+      ),
+      GoRoute(
+        path: '/project-list',
+        builder: (context, state) => const ProjectsListPage(),
       ),
       GoRoute(
         path: '/create-project',

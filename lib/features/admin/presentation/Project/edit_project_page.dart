@@ -50,32 +50,48 @@ class _EditProjectPageState extends State<EditProjectPage> {
   Future<void> generateQuotePdf() async {
     final pdf = pw.Document();
 
-    // ✅ Load logo
+    // Load logo
     final logoData = await rootBundle.load('assets/images/adp.png');
     final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
 
-    // ✅ Hardcoded Company Info
+    // Company Info
     const companyName = "ADP Group Inc.";
     const companyAddress = "198 Dawn Dr, London, ON";
     const gstNumber = "GST #743426009RT0001";
     const email = "adpgroupinc@gmail.com";
     const website = "www.adpgroupinc.ca";
 
+    final headerStyle = pw.TextStyle(
+      fontSize: 22,
+      fontWeight: pw.FontWeight.bold,
+      color: PdfColors.black,
+    );
+
+    final sectionTitleStyle = pw.TextStyle(
+      fontSize: 16,
+      fontWeight: pw.FontWeight.bold,
+      color: PdfColors.blueGrey800,
+    );
+
+    final normalStyle = pw.TextStyle(fontSize: 11, color: PdfColors.black);
+    final greyStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey700);
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 32, vertical: 40),
         build:
             (context) => [
-              // ✅ Header with Logo + Company Info
+              /// ---------- HEADER ----------
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
+                  // Logo + Company Info
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Image(logoImage, width: 80),
+                      pw.Image(logoImage, width: 90),
                       pw.SizedBox(height: 10),
                       pw.Text(
                         companyName,
@@ -84,99 +100,135 @@ class _EditProjectPageState extends State<EditProjectPage> {
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
-                      pw.Text(companyAddress),
-                      pw.Text(gstNumber),
-                      pw.Text(email),
-                      pw.Text(
-                        website,
-                        style: pw.TextStyle(color: PdfColors.blue),
+                      pw.SizedBox(height: 2),
+                      pw.Text(companyAddress, style: greyStyle),
+                      pw.Text(gstNumber, style: greyStyle),
+                      pw.Text(email, style: greyStyle),
+                      pw.UrlLink(
+                        destination: "https://$website",
+                        child: pw.Text(
+                          website,
+                          style: pw.TextStyle(
+                            color: PdfColors.blue,
+                            fontSize: 10,
+                          ),
+                        ),
                       ),
                     ],
                   ),
+
+                  // Document Title + Date
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
-                      pw.Text(
-                        'PROJECT QUOTE',
-                        style: pw.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
+                      pw.Text('PROJECT QUOTE', style: headerStyle),
                       pw.SizedBox(height: 4),
                       pw.Text(
                         'Generated on ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
+                        style: greyStyle,
                       ),
                     ],
                   ),
                 ],
               ),
-              pw.SizedBox(height: 20),
 
-              // ✅ Project Details
-              pw.Text(
-                'Project Details',
-                style: pw.TextStyle(
-                  fontSize: 18,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Text('Title: ${title.isNotEmpty ? title : 'N/A'}'),
-              pw.Text(
-                'Client Name: ${clientName.isNotEmpty ? clientName : 'N/A'}',
-              ),
-              pw.Text('Address: ${address.isNotEmpty ? address : 'N/A'}'),
-              pw.Text('Status: ${status.toUpperCase()}'),
-              pw.SizedBox(height: 10),
-              pw.Text(
-                'Start Date: ${startDate != null ? dateFormat.format(startDate!) : 'N/A'}',
-              ),
-              pw.Text(
-                'End Date: ${endDate != null ? dateFormat.format(endDate!) : 'N/A'}',
-              ),
-              pw.SizedBox(height: 10),
-              pw.Text('Budget: \$${(budget ?? 0).toStringAsFixed(2)} CAD'),
-              if (notes.isNotEmpty) pw.Text('Notes: $notes'),
-              pw.SizedBox(height: 20),
+              pw.SizedBox(height: 25),
 
-              // ✅ Expenses Table
-              pw.Text(
-                'Expected Expenses',
-                style: pw.TextStyle(
-                  fontSize: 18,
-                  fontWeight: pw.FontWeight.bold,
+              /// ---------- PROJECT DETAILS ----------
+              pw.Text('Project Details', style: sectionTitleStyle),
+              pw.Divider(thickness: 1, color: PdfColors.grey400),
+              pw.SizedBox(height: 8),
+
+              pw.Table(
+                border: pw.TableBorder.symmetric(
+                  inside: const pw.BorderSide(
+                    color: PdfColors.grey300,
+                    width: 0.3,
+                  ),
                 ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Table.fromTextArray(
-                headers: ['Title', 'Amount (CAD)'],
-                data:
-                    expenses
-                        .map(
-                          (e) => [
-                            e['title'] ?? '',
-                            '\$${(double.tryParse(e['amount'].toString()) ?? 0).toStringAsFixed(2)}',
-                          ],
-                        )
-                        .toList(),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
-                cellAlignments: {
-                  0: pw.Alignment.centerLeft,
-                  1: pw.Alignment.centerRight,
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(100),
+                  1: const pw.FlexColumnWidth(),
                 },
-                border: pw.TableBorder.all(width: 0.5, color: PdfColors.grey),
+                children: [
+                  _buildDetailRow('Title', title.isNotEmpty ? title : 'N/A'),
+                  _buildDetailRow(
+                    'Client Name',
+                    clientName.isNotEmpty ? clientName : 'N/A',
+                  ),
+                  _buildDetailRow(
+                    'Address',
+                    address.isNotEmpty ? address : 'N/A',
+                  ),
+                  _buildDetailRow('Status', status.toUpperCase()),
+                  _buildDetailRow(
+                    'Start Date',
+                    startDate != null ? dateFormat.format(startDate!) : 'N/A',
+                  ),
+                  _buildDetailRow(
+                    'End Date',
+                    endDate != null ? dateFormat.format(endDate!) : 'N/A',
+                  ),
+                  _buildDetailRow(
+                    'Budget',
+                    '\$${(budget ?? 0).toStringAsFixed(2)} CAD',
+                  ),
+                  if (notes.isNotEmpty) _buildDetailRow('Notes', notes),
+                ],
               ),
-              pw.SizedBox(height: 20),
 
-              // ✅ Footer
+              pw.SizedBox(height: 25),
+
+              /// ---------- EXPENSES TABLE ----------
+              pw.Text('Expected Expenses', style: sectionTitleStyle),
+              pw.Divider(thickness: 1, color: PdfColors.grey400),
+              pw.SizedBox(height: 8),
+
+              expenses.isEmpty
+                  ? pw.Text('No expenses added.', style: greyStyle)
+                  : pw.Table.fromTextArray(
+                    headers: ['Title', 'Amount (CAD)'],
+                    data:
+                        expenses
+                            .map(
+                              (e) => [
+                                e['title'] ?? '',
+                                '\$${(double.tryParse(e['amount'].toString()) ?? 0).toStringAsFixed(2)}',
+                              ],
+                            )
+                            .toList(),
+                    headerStyle: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 11,
+                      color: PdfColors.white,
+                    ),
+                    headerDecoration: pw.BoxDecoration(
+                      color: PdfColors.blueGrey800,
+                    ),
+                    cellStyle: normalStyle,
+                    cellAlignments: {
+                      0: pw.Alignment.centerLeft,
+                      1: pw.Alignment.centerRight,
+                    },
+                    cellPadding: const pw.EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    border: pw.TableBorder.all(
+                      width: 0.5,
+                      color: PdfColors.grey400,
+                    ),
+                  ),
+
+              pw.SizedBox(height: 30),
+
+              /// ---------- FOOTER ----------
               pw.Divider(),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text(
                   'Quote Generated on ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
-                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+                  style: greyStyle,
                 ),
               ),
             ],
@@ -184,6 +236,24 @@ class _EditProjectPageState extends State<EditProjectPage> {
     );
 
     await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+  }
+
+  pw.TableRow _buildDetailRow(String label, String value) {
+    return pw.TableRow(
+      children: [
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 4),
+          child: pw.Text(
+            label,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 4),
+          child: pw.Text(value),
+        ),
+      ],
+    );
   }
 
   Future<void> deleteProject() async {
@@ -404,9 +474,40 @@ class _EditProjectPageState extends State<EditProjectPage> {
       appBar: AppBar(
         title: const Text('Edit Project'),
         actions: [
-          IconButton(
-            onPressed: deleteProject,
-            icon: Icon(Icons.delete, color: Colors.red),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'pdf':
+                  generateQuotePdf();
+                  break;
+                case 'delete':
+                  deleteProject();
+                  break;
+              }
+            },
+            itemBuilder:
+                (context) => [
+                  const PopupMenuItem(
+                    value: 'pdf',
+                    child: Row(
+                      children: [
+                        Icon(Icons.picture_as_pdf, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Generate PDF'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Delete Project'),
+                      ],
+                    ),
+                  ),
+                ],
           ),
         ],
       ),
@@ -421,213 +522,397 @@ class _EditProjectPageState extends State<EditProjectPage> {
               key: _formKey,
               child: ListView(
                 children: [
-                  SizedBox(height: 10),
-                  CustomTextField(
-                    initialValue: title,
-                    label: "Project Title",
-                    onSaved: (val) => title = val?.trim() ?? '',
-                    validator:
-                        (val) =>
-                            val == null || val.isEmpty
-                                ? 'Enter project title'
-                                : null,
-                  ),
-                  SizedBox(height: 10),
-                  DropdownButtonFormField<String>(
-                    value: status,
-                    decoration: const InputDecoration(
-                      labelText: 'Status',
-                      border: OutlineInputBorder(),
-                    ),
-                    items:
-                        ['active', 'pending', 'completed']
-                            .map(
-                              (s) => DropdownMenuItem(value: s, child: Text(s)),
-                            )
-                            .toList(),
-                    onChanged:
-                        (val) => setState(() => status = val ?? 'active'),
-                  ),
-                  SizedBox(height: 10),
-                  CustomTextField(
-                    initialValue: clientName,
-                    label: 'Client Name',
-                    onSaved: (val) => clientName = val ?? '',
-                  ),
-                  SizedBox(height: 10),
-                  CustomTextField(
-                    initialValue: address,
-                    label: 'Address',
-                    onSaved: (val) => address = val ?? '',
-                  ),
-                  SizedBox(height: 10),
-                  CustomTextField(
-                    initialValue: budget?.toString(),
+                  _buildProjectInfoSection(),
+                  const SizedBox(height: 12),
+                  _buildDatePickers(),
 
-                    label: 'Budget (CAD)',
-
-                    keyboardType: TextInputType.number,
-                    onSaved: (val) => budget = double.tryParse(val ?? ''),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 5),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.calendar_today),
-                            title: const Text('Start Date'),
-                            subtitle: Text(
-                              startDate != null
-                                  ? dateFormat.format(startDate!)
-                                  : 'Select',
-                            ),
-                            onTap: () => pickDate(isStart: true),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 5),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.event),
-                            title: const Text('End Date'),
-                            subtitle: Text(
-                              endDate != null
-                                  ? dateFormat.format(endDate!)
-                                  : 'Select',
-                            ),
-                            onTap: () => pickDate(isStart: false),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 10),
-                  CustomTextField(
-                    initialValue: notes,
-                    label: 'Notes',
-                    maxLines: 3,
-                    onSaved: (val) => notes = val ?? '',
-                  ),
-
-                  const SizedBox(height: 24),
-                  Text(
-                    'Expenses',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  ...expenses.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final expense = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0, top: 10.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CustomTextField(
-                              initialValue: expense['title']?.toString() ?? '',
-                              label: 'Title',
-                              onChanged:
-                                  (val) => expenses[index]['title'] = val,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: CustomTextField(
-                              initialValue: expense['amount']?.toString() ?? '',
-                              label: 'Amount',
-                              keyboardType: TextInputType.number,
-                              onChanged:
-                                  (val) => expenses[index]['amount'] = val,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => removeExpense(index),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  TextButton.icon(
-                    onPressed: addExpenseField,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Expense'),
-                  ),
-
-                  const SizedBox(height: 24),
-                  Text('Photos', style: Theme.of(context).textTheme.titleLarge),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ...existingImageUrls.map(
-                        (url) => Stack(
-                          alignment: Alignment.topRight,
-                          children: [
-                            Image.network(url, height: 100),
-                            IconButton(
-                              icon: const Icon(Icons.close, color: Colors.red),
-                              onPressed:
-                                  () => setState(
-                                    () => existingImageUrls.remove(url),
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ...images.map(
-                        (img) => Image.file(File(img.path), height: 100),
-                      ),
-                    ],
-                  ),
-                  TextButton.icon(
-                    onPressed: pickImages,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Pick Images'),
-                  ),
-                  const SizedBox(height: 24),
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: generateQuotePdf,
-                      icon: const Icon(
-                        Icons.picture_as_pdf,
-                        color: Colors.white,
-                      ),
-                      label: const Text(
-                        'Generate Quote',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  CustomButton(
-                    text: 'Update Project',
-                    onPressed: isSaving ? null : updateProject,
-                    isLoading: isSaving,
-                    icon: Icons.save,
-                  ),
+                  const SizedBox(height: 12),
+                  _buildExpensesSection(),
+                  const SizedBox(height: 12),
+                  _buildNotesSection(),
+                  const SizedBox(height: 12),
+                  _buildPhotosSection(),
+                  const SizedBox(height: 80), // Space for sticky button
                 ],
               ),
             ),
           ),
         ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: CustomButton(
+            text: 'Update Project',
+            onPressed: isSaving ? null : updateProject,
+            isLoading: isSaving,
+            icon: Icons.save,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Inside _EditProjectPageState
+  Widget _buildProjectInfoSection() {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        initiallyExpanded: true,
+        leading: const Icon(Icons.info_outline, color: Colors.teal),
+        title: const Text(
+          'Project Info',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        children: [
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                CustomTextField(
+                  initialValue: title,
+                  label: "Project Title",
+                  onSaved: (val) => title = val?.trim() ?? '',
+                  validator:
+                      (val) =>
+                          val == null || val.isEmpty
+                              ? 'Enter project title'
+                              : null,
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: status,
+                  decoration: const InputDecoration(
+                    labelText: 'Status',
+                    border: OutlineInputBorder(),
+                  ),
+                  items:
+                      ['active', 'pending', 'completed']
+                          .map(
+                            (s) => DropdownMenuItem(value: s, child: Text(s)),
+                          )
+                          .toList(),
+                  onChanged: (val) => setState(() => status = val ?? 'active'),
+                ),
+                const SizedBox(height: 10),
+                CustomTextField(
+                  initialValue: clientName,
+                  label: 'Client Name',
+                  onSaved: (val) => clientName = val ?? '',
+                ),
+                const SizedBox(height: 10),
+                CustomTextField(
+                  initialValue: address,
+                  label: 'Address',
+                  onSaved: (val) => address = val ?? '',
+                ),
+                const SizedBox(height: 10),
+                CustomTextField(
+                  initialValue: budget?.toString(),
+                  label: 'Budget (CAD)',
+                  keyboardType: TextInputType.number,
+                  onSaved: (val) => budget = double.tryParse(val ?? ''),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotesSection() {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: const Icon(Icons.note_alt, color: Colors.purple),
+        title: const Text(
+          'Notes',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        children: [
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: CustomTextField(
+              initialValue: notes,
+              label: 'Notes (optional)',
+              maxLines: 3,
+              onSaved: (val) => notes = val ?? '',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotosSection() {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: const Icon(Icons.photo_library, color: Colors.purpleAccent),
+        title: const Text(
+          'Project Photos',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        children: [
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ...existingImageUrls.map(
+                  (url) => Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          url,
+                          height: 100,
+                          width: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        onPressed:
+                            () => setState(() => existingImageUrls.remove(url)),
+                      ),
+                    ],
+                  ),
+                ),
+                ...images.map(
+                  (img) => ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(img.path),
+                      height: 100,
+                      width: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: pickImages,
+              icon: const Icon(Icons.add_photo_alternate),
+              label: const Text('Add Images'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePickers() {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: const Icon(Icons.calendar_month, color: Colors.teal),
+        title: const Text(
+          'Project Dates',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        children: [
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => pickDate(isStart: true),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Start Date',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade400),
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey.shade100,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Icon(Icons.date_range, color: Colors.teal),
+                              Text(
+                                startDate != null
+                                    ? dateFormat.format(startDate!)
+                                    : 'Select',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color:
+                                      startDate != null
+                                          ? Colors.black87
+                                          : Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => pickDate(isStart: false),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'End Date',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade400),
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey.shade100,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Icon(Icons.event, color: Colors.deepOrange),
+                              Text(
+                                endDate != null
+                                    ? dateFormat.format(endDate!)
+                                    : 'Select',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color:
+                                      endDate != null
+                                          ? Colors.black87
+                                          : Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpensesSection() {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: const Icon(Icons.receipt_long, color: Colors.blueAccent),
+        title: const Text(
+          'Estimated Expenses',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        children: [
+          const Divider(height: 1),
+          ...expenses.asMap().entries.map((entry) {
+            final index = entry.key;
+            final expense = entry.value;
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.edit_note,
+                        size: 18,
+                        color: Colors.blueAccent,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Expense #${index + 1}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: () => removeExpense(index),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  CustomTextField(
+                    initialValue: expense['title']?.toString() ?? '',
+                    label: 'Title',
+                    maxLines: 2,
+                    onChanged: (val) => expenses[index]['title'] = val,
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    initialValue: expense['amount']?.toString() ?? '',
+                    label: 'Amount (CAD)',
+                    keyboardType: TextInputType.number,
+                    onChanged: (val) => expenses[index]['amount'] = val,
+                  ),
+                ],
+              ),
+            );
+          }),
+          Padding(
+            padding: const EdgeInsets.only(right: 12, bottom: 12),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: addExpenseField,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Expense'),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

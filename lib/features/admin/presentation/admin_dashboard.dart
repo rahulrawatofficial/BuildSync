@@ -1,5 +1,6 @@
+import 'dart:math';
+
 import 'package:buildsync/core/config/app_setion_manager.dart';
-// import 'package:buildsync/features/admin/presentation/Project/project_card.dart';
 import 'package:buildsync/global/blocs/auth_cubit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -9,10 +10,10 @@ import 'package:go_router/go_router.dart';
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
 
-  Future<Map<String, int>> _fetchCounts(String companyId) async {
+  Future<Map<String, dynamic>> _fetchDashboardData(String companyId) async {
     final firestore = FirebaseFirestore.instance;
 
-    // Fetch ongoing projects
+    // Ongoing projects
     final projectsSnapshot =
         await firestore
             .collection('companies')
@@ -21,10 +22,22 @@ class AdminDashboard extends StatelessWidget {
             .where('status', isNotEqualTo: 'completed')
             .get();
 
-    int ongoingProjectsCount = projectsSnapshot.docs.length;
-    int taskCount = 0;
+    // Count workers (users table with role 'worker')
+    final workersSnapshot =
+        await firestore
+            .collection('companies')
+            .doc(companyId)
+            .collection('users')
+            .where('role', isEqualTo: 'worker')
+            .get();
 
-    // For each ongoing project, fetch tasks that are not completed
+    // Pending tasks and deadlines for this week
+    int taskCount = 0;
+    int upcomingDeadlines = 0;
+
+    DateTime now = DateTime.now();
+    DateTime weekEnd = now.add(Duration(days: 7));
+
     for (var projectDoc in projectsSnapshot.docs) {
       final tasksSnapshot =
           await firestore
@@ -36,15 +49,44 @@ class AdminDashboard extends StatelessWidget {
               .where('status', isNotEqualTo: 'done')
               .get();
 
-      taskCount += tasksSnapshot.docs.length;
+      for (var taskDoc in tasksSnapshot.docs) {
+        final task = taskDoc.data();
+        taskCount++;
+
+        if (task.containsKey('endDate') && task['endDate'] != null) {
+          final dueDate = DateTime.tryParse(task['endDate']);
+          if (dueDate != null &&
+              dueDate.isAfter(now) &&
+              dueDate.isBefore(weekEnd)) {
+            upcomingDeadlines++;
+          }
+        }
+      }
     }
 
-    return {'ongoingProjects': ongoingProjectsCount, 'pendingTasks': taskCount};
+    return {
+      'ongoingProjects': projectsSnapshot.docs.length,
+      'pendingTasks': taskCount,
+      'workers': workersSnapshot.docs.length,
+      'upcomingDeadlines': upcomingDeadlines,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    final companyId = AppSessionManager().companyId;
+    final companyId = AppSessionManager().companyId!;
+    final _random = Random();
+    Color _randomColor() {
+      final colors = [
+        Colors.blue,
+        Colors.green,
+        Colors.orange,
+        Colors.purple,
+        Colors.redAccent,
+        Colors.teal,
+      ];
+      return colors[_random.nextInt(colors.length)];
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Admin Dashboard')),
@@ -54,43 +96,70 @@ class AdminDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// -------------------- TOP SUMMARY CARDS --------------------
-            FutureBuilder<Map<String, int>>(
-              future: _fetchCounts(companyId!),
+            /// -------------------- SUMMARY CARDS --------------------
+            FutureBuilder<Map<String, dynamic>>(
+              future: _fetchDashboardData(companyId),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 final data = snapshot.data!;
-                int ongoingProjects = data['ongoingProjects']!;
-                int pendingTasks = data['pendingTasks']!;
-
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                return Column(
                   children: [
-                    _buildSummaryCard(
-                      title: 'Pending Tasks',
-                      count: pendingTasks,
-                      color: Colors.orangeAccent,
-                      icon: Icons.task_alt,
+                    Row(
+                      children: [
+                        _buildSummaryCard(
+                          title: 'Pending Tasks',
+                          count: data['pendingTasks'],
+                          color: Colors.orangeAccent,
+                          icon: Icons.task_alt,
+                        ),
+                        _buildSummaryCard(
+                          title: 'Ongoing Projects',
+                          count: data['ongoingProjects'],
+                          color: Colors.blueAccent,
+                          icon: Icons.work_outline,
+                        ),
+                      ],
                     ),
-                    _buildSummaryCard(
-                      title: 'Ongoing Projects',
-                      count: ongoingProjects,
-                      color: Colors.blueAccent,
-                      icon: Icons.work_outline,
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _buildSummaryCard(
+                          title: 'Workers',
+                          count: data['workers'],
+                          color: Colors.green,
+                          icon: Icons.people,
+                        ),
+                        _buildSummaryCard(
+                          title: 'Deadlines',
+                          count: data['upcomingDeadlines'],
+                          color: Colors.redAccent,
+                          icon: Icons.calendar_today,
+                        ),
+                      ],
                     ),
                   ],
                 );
               },
             ),
+
             const SizedBox(height: 20),
 
-            /// -------------------- PROJECT LIST --------------------
-            const Text(
-              'Projects',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            /// -------------------- ONGOING PROJECTS --------------------
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Ongoing Projects',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                TextButton(
+                  onPressed: () => context.push('/project-list'),
+                  child: const Text('View All'),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
 
@@ -100,13 +169,15 @@ class AdminDashboard extends StatelessWidget {
                       .collection('companies')
                       .doc(companyId)
                       .collection('projects')
+                      .where('status', isNotEqualTo: 'completed')
+                      .limit(3)
                       .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text('No projects available'));
+                  return const Text('No ongoing projects');
                 }
 
                 final projects = snapshot.data!.docs;
@@ -114,7 +185,6 @@ class AdminDashboard extends StatelessWidget {
                 return ListView.separated(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  padding: EdgeInsets.zero,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemCount: projects.length,
                   itemBuilder: (context, index) {
@@ -122,24 +192,96 @@ class AdminDashboard extends StatelessWidget {
                     final project = doc.data() as Map<String, dynamic>;
 
                     return Card(
-                      elevation: 2,
+                      elevation: 3,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(12),
-                        title: Text(
-                          project['title'] ?? 'No Title',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => context.push('/edit-project/${doc.id}'),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              /// ---- Icon with Random Color ----
+                              Container(
+                                height: 40,
+                                width: 40,
+                                decoration: BoxDecoration(
+                                  color: _randomColor().withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.work_outline,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+
+                              /// ---- Title & Address ----
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      project['title'] ?? 'No Title',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on,
+                                          size: 14,
+                                          color: Colors.black54,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            project['address'] ?? 'No Address',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black54,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              /// ---- Status Chip ----
+                              Align(
+                                alignment: Alignment.center,
+                                child: Chip(
+                                  label: Text(
+                                    (project['status'] ?? 'active')
+                                        .toUpperCase(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  backgroundColor: _statusColor(
+                                    project['status'],
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        subtitle: Text(project['address'] ?? 'No Address'),
-                        trailing: Chip(
-                          label: Text(project['status'] ?? 'active'),
-                          backgroundColor: _statusColor(project['status']),
-                        ),
-                        onTap: () {
-                          context.push('/edit-project/${doc.id}');
-                        },
                       ),
                     );
                   },

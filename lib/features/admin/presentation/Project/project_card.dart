@@ -1,104 +1,156 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class ProjectCard extends StatelessWidget {
-  final String id;
-  final String title;
-  final String address;
-  final String? startDate;
-  final String status;
+  final Map<String, dynamic> project;
   final VoidCallback onTap;
 
-  const ProjectCard({
-    super.key,
-    required this.id,
-    required this.title,
-    required this.address,
-    this.startDate,
-    required this.status,
-    required this.onTap,
-  });
+  const ProjectCard({super.key, required this.project, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final parsedDate = startDate != null ? DateTime.tryParse(startDate!) : null;
-    final formattedDate =
-        parsedDate != null
-            ? DateFormat('MMM d, yyyy').format(parsedDate)
-            : 'Not set';
+    final title = project['title'] ?? 'No Title';
+    final clientName = project['clientName'] ?? 'Unknown Client';
+    final address = project['address'] ?? 'No Address';
+    final status = project['status'] ?? 'active';
+    final startDate = project['startDate'] ?? '';
+    final endDate = project['endDate'] ?? '';
 
-    return Material(
-      color: Colors.white,
-      elevation: 2,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.blueAccent,
-                child: Icon(Icons.home_work_outlined, color: Colors.white),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.blue.shade100],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 6,
+              offset: const Offset(2, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// ---- Title & Status ----
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                Chip(
+                  label: Text(status.capitalize()),
+                  backgroundColor: _statusColor(status),
+                  labelStyle: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            /// ---- Client Name ----
+            Row(
+              children: [
+                const Icon(Icons.person, size: 18, color: Colors.black54),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    clientName,
+                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+
+            /// ---- Address ----
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 18, color: Colors.black54),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    address,
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 16, color: Colors.black12),
+
+            /// ---- Start - End Date ----
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
                   children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: Colors.blue,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      title,
+                      startDate != '' ? 'Start: $startDate' : 'Start: -',
                       style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.black87,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      address,
-                      style: const TextStyle(color: Colors.black87),
-                    ),
-                    Text(
-                      'Start: $formattedDate',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(6),
+                Row(
+                  children: [
+                    const Icon(Icons.event, size: 16, color: Colors.redAccent),
+                    const SizedBox(width: 4),
+                    Text(
+                      endDate != '' ? 'End: $endDate' : 'End: -',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  status.toUpperCase(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Color get statusColor {
-    switch (status.toLowerCase()) {
+  Color _statusColor(String status) {
+    switch (status) {
       case 'completed':
         return Colors.green;
       case 'pending':
         return Colors.orange;
-      case 'active':
       default:
         return Colors.blue;
     }
   }
+}
+
+extension StringCasing on String {
+  String capitalize() =>
+      isNotEmpty ? '${this[0].toUpperCase()}${substring(1)}' : this;
 }

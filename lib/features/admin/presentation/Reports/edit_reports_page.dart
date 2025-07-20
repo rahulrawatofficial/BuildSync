@@ -341,164 +341,200 @@ class _EditReportPageState extends State<EditReportPage> {
   Future<void> _generatePDF() async {
     final pdf = pw.Document();
 
-    // Load logo from assets
+    // Load logo
     final logoData = await rootBundle.load('assets/images/adp.png');
     final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
 
-    // Hardcoded data for now
+    // Company Info
     const companyName = "ADP Group Inc.";
     const companyAddress = "198 Dawn Dr, London, ON";
     const gstNumber = "GST #743426009RT0001";
     const email = "adpgroupinc@gmail.com";
     const website = "www.adpgroupinc.ca";
 
-    const clientName = "Oakridge Group Inc.";
-    const clientAddress = "340 Highway 20, Hamilton, ON L0R 1P0";
+    // Project Info
+    final title = projectData['title'] ?? 'Untitled Project';
+    final clientName = projectData['clientName'] ?? 'N/A';
+    final clientAddress = projectData['address'] ?? 'N/A';
+    final status = projectData['status'] ?? 'Active';
+    DateTime? _parseDate(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.tryParse(value);
+      return null;
+    }
 
-    const invoiceNumber = "INV002";
-    final invoiceDate = DateFormat('MM/dd/yyyy').format(DateTime.now());
-    const dueDate = "On Receipt";
+    final startDate = _parseDate(projectData['startDate']);
+    final endDate = _parseDate(projectData['endDate']);
+    final dateFormat = DateFormat('yyyy-MM-dd');
 
-    // Hardcoded tasks and expenses
-    final taskDocs = [
-      {
-        "title": "Accessibility Sign",
-        "status": "Completed",
-        "estimatedCost": 339.00,
-      },
-      {
-        "title": "Parking Lines",
-        "status": "Completed",
-        "estimatedCost": 980.84,
-      },
-    ];
+    // Tasks & Expenses
+    final tasks =
+        taskDocs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    final expenses =
+        expenseDocs.map((doc) => doc.data() as Map<String, dynamic>).toList();
 
-    final expenseDocs = [
-      {
-        "name": "Paint Supplies",
-        "details": "White paint and brushes",
-        "amount": 120.50,
-      },
-      {"name": "Travel", "details": "Fuel for project", "amount": 75.00},
-    ];
-
-    // Calculate totals
-    final double taskTotal = taskDocs.fold<double>(
+    final taskTotal = tasks.fold<double>(
       0,
-      (sum, t) => sum + ((t['estimatedCost'] ?? 0) as double),
+      (sum, t) => sum + (t['estimatedCost'] ?? 0),
     );
-
-    final double expenseTotal = expenseDocs.fold<double>(
+    final expenseTotal = expenses.fold<double>(
       0,
-      (sum, e) => sum + ((e['amount'] ?? 0) as double),
+      (sum, e) => sum + (e['amount'] ?? 0),
     );
-    final double grandTotal = taskTotal + expenseTotal;
-    final double tax = grandTotal * 0.13;
-    final double finalTotal = grandTotal + tax;
+    final grandTotal = taskTotal + expenseTotal;
+    final tax = grandTotal * 0.13;
+    final finalTotal = grandTotal + tax;
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
         build:
             (context) => [
-              // Header
+              // HEADER
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Image(logoImage, width: 80, height: 80),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Image(logoImage, width: 80),
+                      pw.SizedBox(height: 10),
+                      pw.Text(
+                        companyName,
+                        style: pw.TextStyle(
+                          fontSize: 14,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.Text(companyAddress),
+                      pw.Text(gstNumber),
+                      pw.Text(email),
+                      pw.UrlLink(
+                        destination: "https://$website",
+                        child: pw.Text(
+                          website,
+                          style: pw.TextStyle(color: PdfColors.blue),
+                        ),
+                      ),
+                    ],
+                  ),
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        "INVOICE",
+                        'INVOICE',
                         style: pw.TextStyle(
                           fontSize: 22,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
-                      pw.Text("Invoice #: $invoiceNumber"),
-                      pw.Text("Date: $invoiceDate"),
-                      pw.Text("Due: $dueDate"),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'Date: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
+                      ),
+                      pw.Text('Status: ${status.toUpperCase()}'),
                     ],
                   ),
                 ],
               ),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 20),
 
-              // Company Info
+              // PROJECT INFO
               pw.Text(
-                companyName,
+                'Project Details',
                 style: pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
-              pw.Text(companyAddress),
-              pw.Text(gstNumber),
-              pw.Text(email),
-              pw.Text(website, style: pw.TextStyle(color: PdfColors.blue)),
-              pw.SizedBox(height: 20),
-
-              // Bill To
+              pw.SizedBox(height: 8),
+              pw.Text('Title: $title'),
+              pw.Text('Client Name: $clientName'),
+              pw.Text('Address: $clientAddress'),
               pw.Text(
-                "Bill To:",
-                style: pw.TextStyle(
-                  fontSize: 14,
-                  fontWeight: pw.FontWeight.bold,
-                ),
+                'Start Date: ${startDate != null ? dateFormat.format(startDate) : 'N/A'}',
               ),
-              pw.Text(clientName),
-              pw.Text(clientAddress),
+              pw.Text(
+                'End Date: ${endDate != null ? dateFormat.format(endDate) : 'N/A'}',
+              ),
               pw.SizedBox(height: 20),
 
-              // Tasks Table
+              // TASKS
               pw.Text(
-                "Tasks:",
+                'Tasks',
                 style: pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
+              pw.SizedBox(height: 6),
               pw.Table.fromTextArray(
-                headers: ["Task", "Status", "Cost"],
+                headers: ['Task', 'Status', 'Cost'],
                 data:
-                    taskDocs
+                    tasks
                         .map(
                           (t) => [
-                            t['title'],
-                            t['status'],
-                            "\$${((t['estimatedCost'] ?? 0) as num).toDouble().toStringAsFixed(2)}",
+                            t['title'] ?? 'Unnamed Task',
+                            t['status'] ?? 'N/A',
+                            "\$${(t['estimatedCost'] ?? 0).toStringAsFixed(2)}",
                           ],
                         )
                         .toList(),
+                headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                ),
+                headerDecoration: pw.BoxDecoration(
+                  color: PdfColors.blueGrey800,
+                ),
+                border: pw.TableBorder.all(
+                  color: PdfColors.grey300,
+                  width: 0.5,
+                ),
               ),
               pw.SizedBox(height: 20),
 
-              // Expenses Table
+              // EXPENSES
               pw.Text(
-                "Expenses:",
+                'Expenses',
                 style: pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
+              pw.SizedBox(height: 6),
               pw.Table.fromTextArray(
-                headers: ["Name", "Details", "Amount"],
+                headers: ['Title', 'Details', 'Amount'],
                 data:
-                    expenseDocs
+                    expenses
                         .map(
                           (e) => [
-                            e['name'],
-                            e['details'],
-                            "\$${((e['amount'] ?? 0) as num).toDouble().toStringAsFixed(2)}",
+                            e['name'] ?? 'Unnamed Expense',
+                            e['details'] ?? '',
+                            "\$${(e['amount'] ?? 0).toStringAsFixed(2)}",
                           ],
                         )
                         .toList(),
+                headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                ),
+                headerDecoration: pw.BoxDecoration(
+                  color: PdfColors.blueGrey800,
+                ),
+                border: pw.TableBorder.all(
+                  color: PdfColors.grey300,
+                  width: 0.5,
+                ),
               ),
               pw.SizedBox(height: 20),
-              pw.Divider(),
 
-              // Totals Section
+              // TOTALS
+              pw.Divider(),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Column(
@@ -513,8 +549,9 @@ class _EditReportPageState extends State<EditReportPage> {
                     pw.Text(
                       "Final Total: \$${finalTotal.toStringAsFixed(2)}",
                       style: pw.TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.green800,
                       ),
                     ),
                   ],
