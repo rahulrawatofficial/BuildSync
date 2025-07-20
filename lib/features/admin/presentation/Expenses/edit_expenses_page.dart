@@ -57,7 +57,6 @@ class _EditExpensePageState extends State<EditExpensePage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _loading = true);
 
     final expenseData = {
@@ -78,7 +77,6 @@ class _EditExpensePageState extends State<EditExpensePage> {
         .update(expenseData);
 
     setState(() => _loading = false);
-
     if (context.mounted) Navigator.pop(context);
   }
 
@@ -108,7 +106,6 @@ class _EditExpensePageState extends State<EditExpensePage> {
     );
 
     if (confirm != true) return;
-
     setState(() => _deleting = true);
 
     await FirebaseFirestore.instance
@@ -121,7 +118,6 @@ class _EditExpensePageState extends State<EditExpensePage> {
         .delete();
 
     setState(() => _deleting = false);
-
     if (context.mounted) Navigator.pop(context);
   }
 
@@ -144,76 +140,99 @@ class _EditExpensePageState extends State<EditExpensePage> {
               ? const Center(
                 child: CircularProgressIndicator(color: Colors.red),
               )
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Expense Name',
-                        ),
-                        validator:
-                            (value) =>
-                                value == null || value.trim().isEmpty
-                                    ? 'Expense name is required'
-                                    : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _detailsController,
-                        decoration: const InputDecoration(labelText: 'Details'),
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _amountController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Amount'),
-                        validator:
-                            (value) =>
-                                value == null || double.tryParse(value) == null
-                                    ? 'Enter valid amount'
-                                    : null,
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        value: _category,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Material',
-                            child: Text('Material'),
+              : Stack(
+                children: [
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Expense Name',
+                            ),
+                            validator:
+                                (value) =>
+                                    value == null || value.trim().isEmpty
+                                        ? 'Expense name is required'
+                                        : null,
                           ),
-                          DropdownMenuItem(
-                            value: 'Labor',
-                            child: Text('Labor'),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _detailsController,
+                            decoration: const InputDecoration(
+                              labelText: 'Details',
+                            ),
+                            maxLines: 2,
                           ),
-                          DropdownMenuItem(
-                            value: 'Misc',
-                            child: Text('Miscellaneous'),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _amountController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Amount',
+                            ),
+                            validator:
+                                (value) =>
+                                    value == null ||
+                                            double.tryParse(value) == null
+                                        ? 'Enter valid amount'
+                                        : null,
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            value: _category,
+                            decoration: const InputDecoration(
+                              labelText: 'Category',
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Material',
+                                child: Text('Material'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Labor',
+                                child: Text('Labor'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Misc',
+                                child: Text('Miscellaneous'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => _category = value);
+                              }
+                            },
                           ),
                         ],
-                        onChanged: (value) {
-                          if (value != null) setState(() => _category = value);
-                        },
                       ),
-                      const SizedBox(height: 32),
-                      Center(
-                        child: ElevatedButton.icon(
-                          onPressed: _submit,
-                          icon: const Icon(Icons.save),
-                          label: const Text('Save Changes'),
+                    ),
+                  ),
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        // backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                    ],
+                      onPressed: _submit,
+                      // icon: const Icon(Icons.save),
+                      label: const Text(
+                        'Update Expense',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
     );
   }

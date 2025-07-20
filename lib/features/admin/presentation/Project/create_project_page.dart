@@ -109,7 +109,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
-          const Divider(height: 1),
+          // const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -173,7 +173,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
-          const Divider(height: 1),
+          // const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -263,7 +263,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
-          const Divider(height: 1),
+          // const Divider(height: 1),
           ...expenses.asMap().entries.map((entry) {
             final index = entry.key;
             final expense = entry.value;
@@ -344,7 +344,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
-          const Divider(height: 1),
+          // const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(12),
             child: CustomTextField(
@@ -396,7 +396,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
             text: 'Create Project',
             onPressed: isLoading ? null : submitProject,
             isLoading: isLoading,
-            icon: Icons.save,
+            // icon: Icons.save,
           ),
         ),
       ),

@@ -21,17 +21,17 @@ class CustomButton extends StatelessWidget {
       height: 60,
       child: ElevatedButton.icon(
         onPressed: isLoading ? null : onPressed,
-        icon:
-            isLoading
-                ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-                : Icon(icon ?? Icons.check, size: 20, color: Colors.white),
+        // icon:
+        //     isLoading
+        //         ? const SizedBox(
+        //           width: 16,
+        //           height: 16,
+        //           child: CircularProgressIndicator(
+        //             strokeWidth: 2,
+        //             color: Colors.white,
+        //           ),
+        //         )
+        //         : Icon(icon ?? Icons.check, size: 20, color: Colors.white),
         label: Text(
           isLoading ? 'Updating...' : text,
           style: const TextStyle(
@@ -41,7 +41,7 @@ class CustomButton extends StatelessWidget {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2BB56D),
+          // backgroundColor: const Color(0xFF2BB56D),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
           elevation: 4,
         ),

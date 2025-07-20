@@ -12,7 +12,11 @@ class ReportsListPage extends StatelessWidget {
     final companyId = AppSessionManager().companyId!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Project Reports'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Project Reports'),
+        centerTitle: true,
+        elevation: 1,
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream:
             FirebaseFirestore.instance
@@ -29,13 +33,13 @@ class ReportsListPage extends StatelessWidget {
           final projects = snapshot.data!.docs;
 
           if (projects.isEmpty) {
-            return const Center(child: Text('No reports found'));
+            return _buildEmptyState();
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             itemCount: projects.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final doc = projects[index];
               final data = doc.data() as Map<String, dynamic>;
@@ -48,50 +52,130 @@ class ReportsListPage extends StatelessWidget {
 
               return Card(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                elevation: 1.5,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue.shade50,
-                    child: const Icon(
-                      Icons.description_outlined,
-                      color: Colors.blue,
-                    ),
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                  title: Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    "Status: ${status.toUpperCase()} • $createdAt",
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  ),
-                  trailing: ElevatedButton(
-                    onPressed: () {
-                      context.push('/edit-report/$projectId');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          status == 'completed' ? Colors.green : Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.blue.shade50,
+                        radius: 24,
+                        child: const Icon(
+                          Icons.description_outlined,
+                          color: Colors.blue,
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                _buildStatusChip(status),
+                                const SizedBox(width: 6),
+                                Text(
+                                  createdAt,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      status == 'completed' ? 'View' : 'Edit',
-                      style: const TextStyle(fontSize: 12, color: Colors.white),
-                    ),
+                      IconButton(
+                        onPressed: () {
+                          context.push('/edit-report/$projectId');
+                        },
+                        icon: Icon(
+                          status == 'completed'
+                              ? Icons.visibility_outlined
+                              : Icons.edit_outlined,
+                          color:
+                              status == 'completed'
+                                  ? Colors.green
+                                  : Colors.blue,
+                        ),
+                        tooltip:
+                            status == 'completed'
+                                ? 'View Report'
+                                : 'Edit Report',
+                      ),
+                    ],
                   ),
                 ),
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    final color =
+        status == 'completed'
+            ? Colors.green
+            : status == 'pending'
+            ? Colors.orange
+            : Colors.blue;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.description_outlined,
+              size: 60,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No reports found',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

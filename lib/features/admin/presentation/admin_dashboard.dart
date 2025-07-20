@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:buildsync/core/config/app_setion_manager.dart';
+import 'package:buildsync/core/theme/theme_constants.dart';
 import 'package:buildsync/global/blocs/auth_cubit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -356,7 +357,7 @@ class AdminDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.blue),
+            decoration: const BoxDecoration(color: primaryColor),
             child: Row(
               children: [
                 Container(

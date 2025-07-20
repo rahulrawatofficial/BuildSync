@@ -1,17 +1,21 @@
-// theme_constant.dart
-
 import 'package:flutter/material.dart';
 
-const Color primaryColor = Color(0xFF4A90E2);
-const Color secondaryColor = Color(0xFFF5F5F5);
-const Color borderColor = Color(0xFFD1D1D1);
+const Color primaryColor = Color(0xFF2E7D32); // Forest Green
+const Color secondaryColor = Color(0xFF66BB6A); // Fresh Green Accent
 const Color backgroundColor = Colors.white;
 const Color textColor = Colors.black87;
+// const Color backgroundColor = Color(0xFFFAFAFA); // Light background
+const Color cardColor = Color(0xFFE8F5E9); // Subtle Green Tint
+// const Color textColor = Color(0xFF1B1B1B); // Dark text
+const Color borderColor = Color(0xFFB0BEC5); // Neutral Gray
 
-const double defaultPadding = 16.0;
-const double defaultBorderRadius = 8.0;
-
+/// Text Styles
 const double headingFontSize = 20.0;
 const double bodyFontSize = 14.0;
+const String defaultFontFamily = 'Poppins';
 
-const String defaultFontFamily = 'Lexend';
+/// Layout
+const double defaultPadding = 16.0;
+const double defaultBorderRadius = 12.0;
+
+/// Light ThemeData

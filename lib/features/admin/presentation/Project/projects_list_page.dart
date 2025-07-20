@@ -10,24 +10,24 @@ class ProjectsListPage extends StatelessWidget {
   Color _statusColor(String? status) {
     switch (status) {
       case 'completed':
-        return Colors.greenAccent;
+        return Colors.green.shade600; // Deep forest green
       case 'active':
-        return Colors.blueAccent;
+        return Colors.teal.shade400; // Teal for progress
       case 'pending':
-        return Colors.orangeAccent;
+        return Colors.amber.shade600; // Warm amber for pending
       default:
-        return Colors.grey.shade400;
+        return Colors.grey.shade500; // Neutral grey
     }
   }
 
   Color _randomColor() {
     final colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.redAccent,
-      Colors.teal,
+      Colors.green.shade600, // Forest green
+      Colors.teal.shade400, // Teal
+      Colors.orange.shade600, // Warm orange
+      Colors.purple.shade400, // Modern purple
+      Colors.red.shade400, // Muted red
+      Colors.brown.shade400, // Earthy brown
     ];
     return colors[Random().nextInt(colors.length)];
   }

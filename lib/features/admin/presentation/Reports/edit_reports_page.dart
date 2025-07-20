@@ -22,7 +22,6 @@ class _EditReportPageState extends State<EditReportPage> {
   Map<String, dynamic> projectData = {};
   final _notesController = TextEditingController();
 
-  List<QueryDocumentSnapshot> taskDocs = [];
   List<QueryDocumentSnapshot> expenseDocs = [];
 
   @override
@@ -43,16 +42,6 @@ class _EditReportPageState extends State<EditReportPage> {
 
     projectData = projectDoc.data() ?? {};
     _notesController.text = projectData['reportNotes'] ?? '';
-
-    final tasksSnapshot =
-        await FirebaseFirestore.instance
-            .collection('companies')
-            .doc(companyId)
-            .collection('projects')
-            .doc(widget.projectId)
-            .collection('tasks')
-            .get();
-    taskDocs = tasksSnapshot.docs;
 
     final expensesSnapshot =
         await FirebaseFirestore.instance
@@ -82,13 +71,34 @@ class _EditReportPageState extends State<EditReportPage> {
     if (context.mounted) Navigator.pop(context);
   }
 
+  void _handleMenuAction(String value) {
+    switch (value) {
+      case 'pdf':
+        _generatePDF();
+        break;
+      case 'share':
+        // TODO: implement share
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Report'),
         centerTitle: true,
-        elevation: 2,
+        elevation: 1,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: _handleMenuAction,
+            itemBuilder:
+                (context) => const [
+                  PopupMenuItem(value: 'pdf', child: Text('Generate PDF')),
+                  PopupMenuItem(value: 'share', child: Text('Share Report')),
+                ],
+          ),
+        ],
       ),
       body:
           _loading
@@ -102,22 +112,26 @@ class _EditReportPageState extends State<EditReportPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      elevation: 3,
+                      elevation: 2,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
                             const Icon(
                               Icons.business,
-                              color: Colors.blue,
                               size: 28,
+                              color: Colors.black54,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 projectData['title'] ?? 'Untitled Project',
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
                               ),
                             ),
                           ],
@@ -125,10 +139,8 @@ class _EditReportPageState extends State<EditReportPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    _buildSummaryCard(taskDocs, expenseDocs),
+                    _buildSummaryCard(expenseDocs),
                     const SizedBox(height: 24),
-
                     TextField(
                       controller: _notesController,
                       decoration: InputDecoration(
@@ -146,7 +158,7 @@ class _EditReportPageState extends State<EditReportPage> {
                       ),
                       maxLines: 4,
                     ),
-                    const SizedBox(height: 80), // Space for sticky buttons
+                    const SizedBox(height: 80), // spacing for sticky button
                   ],
                 ),
               ),
@@ -168,163 +180,72 @@ class _EditReportPageState extends State<EditReportPage> {
                     ),
                   ],
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _markComplete,
-                        icon: const Icon(
-                          Icons.check_circle,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Mark Completed',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
+                child: ElevatedButton.icon(
+                  onPressed: _markComplete,
+                  icon: const Icon(Icons.check_circle, color: Colors.white),
+                  label: const Text('Mark Completed'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _generatePDF,
-                        icon: const Icon(
-                          Icons.picture_as_pdf,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Generate PDF',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
     );
   }
 
-  Widget _buildSummaryCard(
-    List<QueryDocumentSnapshot> tasks,
-    List<QueryDocumentSnapshot> expenses,
-  ) {
-    final double taskTotal = tasks.fold<double>(
-      0,
-      (sum, t) => sum + (t['estimatedCost'] ?? 0),
-    );
+  Widget _buildSummaryCard(List<QueryDocumentSnapshot> expenses) {
     final double expenseTotal = expenses.fold<double>(
       0,
       (sum, e) => sum + (e['amount'] ?? 0),
     );
-    final double grandTotal = taskTotal + expenseTotal;
-    final double tax = grandTotal * 0.13;
-    final double finalTotal = grandTotal + tax;
+    final double tax = expenseTotal * 0.13;
+    final double finalTotal = expenseTotal + tax;
 
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: const [
-                Icon(Icons.summarize, color: Colors.blue),
-                SizedBox(width: 8),
-                Text(
-                  'Project Summary',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            Text(
+              'Project Summary',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Tasks',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            ...tasks.map((taskDoc) {
-              final task = taskDoc.data() as Map<String, dynamic>;
-              return ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.task_alt, color: Colors.green),
-                title: Text(task['title'] ?? 'Unnamed Task'),
-                subtitle: Text('Status: ${task['status'] ?? 'unknown'}'),
-                trailing: Text(
-                  '\$${(task['estimatedCost'] ?? 0).toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              );
-            }),
-            const Divider(thickness: 1),
-            const Text(
-              'Expenses',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
             ...expenses.map((expDoc) {
               final expense = expDoc.data() as Map<String, dynamic>;
               return ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(
-                  Icons.attach_money,
-                  color: Colors.redAccent,
-                ),
+                leading: const Icon(Icons.attach_money, color: Colors.black54),
                 title: Text(expense['name'] ?? 'Unnamed Expense'),
                 subtitle: Text(expense['details'] ?? ''),
                 trailing: Text(
                   '\$${(expense['amount'] ?? 0).toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               );
             }),
-            const Divider(thickness: 1),
+            const Divider(thickness: 0.8),
             const SizedBox(height: 8),
-            _buildTotalRow('Total Tasks Cost', taskTotal),
             _buildTotalRow('Total Expenses', expenseTotal),
-            _buildTotalRow('Grand Total', grandTotal, color: Colors.blue),
             _buildTotalRow('Tax (13%)', tax),
-            _buildTotalRow(
-              'Final Total',
-              finalTotal,
-              color: Colors.green,
-              bold: true,
-            ),
+            _buildTotalRow('Final Total', finalTotal, bold: true),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTotalRow(
-    String label,
-    double amount, {
-    Color color = Colors.black,
-    bool bold = false,
-  }) {
+  Widget _buildTotalRow(String label, double amount, {bool bold = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -334,14 +255,14 @@ class _EditReportPageState extends State<EditReportPage> {
             label,
             style: TextStyle(
               fontWeight: bold ? FontWeight.bold : FontWeight.w500,
-              color: color,
+              color: Colors.black87,
             ),
           ),
           Text(
             '\$${amount.toStringAsFixed(2)}',
             style: TextStyle(
               fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-              color: color,
+              color: Colors.black87,
             ),
           ),
         ],
@@ -368,6 +289,8 @@ class _EditReportPageState extends State<EditReportPage> {
     final clientName = projectData['clientName'] ?? 'N/A';
     final clientAddress = projectData['address'] ?? 'N/A';
     final status = projectData['status'] ?? 'Active';
+
+    final dateFormat = DateFormat('yyyy-MM-dd');
     DateTime? _parseDate(dynamic value) {
       if (value == null) return null;
       if (value is Timestamp) return value.toDate();
@@ -378,25 +301,16 @@ class _EditReportPageState extends State<EditReportPage> {
 
     final startDate = _parseDate(projectData['startDate']);
     final endDate = _parseDate(projectData['endDate']);
-    final dateFormat = DateFormat('yyyy-MM-dd');
 
-    // Tasks & Expenses
-    final tasks =
-        taskDocs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    // Expenses
     final expenses =
         expenseDocs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-
-    final taskTotal = tasks.fold<double>(
-      0,
-      (sum, t) => sum + (t['estimatedCost'] ?? 0),
-    );
     final expenseTotal = expenses.fold<double>(
       0,
       (sum, e) => sum + (e['amount'] ?? 0),
     );
-    final grandTotal = taskTotal + expenseTotal;
-    final tax = grandTotal * 0.13;
-    final finalTotal = grandTotal + tax;
+    final tax = expenseTotal * 0.13;
+    final finalTotal = expenseTotal + tax;
 
     pdf.addPage(
       pw.MultiPage(
@@ -444,9 +358,7 @@ class _EditReportPageState extends State<EditReportPage> {
                         ),
                       ),
                       pw.SizedBox(height: 4),
-                      pw.Text(
-                        'Date: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
-                      ),
+                      pw.Text('Date: ${dateFormat.format(DateTime.now())}'),
                       pw.Text('Status: ${status.toUpperCase()}'),
                     ],
                   ),
@@ -471,41 +383,6 @@ class _EditReportPageState extends State<EditReportPage> {
               ),
               pw.Text(
                 'End Date: ${endDate != null ? dateFormat.format(endDate) : 'N/A'}',
-              ),
-              pw.SizedBox(height: 20),
-
-              // TASKS
-              pw.Text(
-                'Tasks',
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.SizedBox(height: 6),
-              pw.Table.fromTextArray(
-                headers: ['Task', 'Status', 'Cost'],
-                data:
-                    tasks
-                        .map(
-                          (t) => [
-                            t['title'] ?? 'Unnamed Task',
-                            t['status'] ?? 'N/A',
-                            "\$${(t['estimatedCost'] ?? 0).toStringAsFixed(2)}",
-                          ],
-                        )
-                        .toList(),
-                headerStyle: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.white,
-                ),
-                headerDecoration: pw.BoxDecoration(
-                  color: PdfColors.blueGrey800,
-                ),
-                border: pw.TableBorder.all(
-                  color: PdfColors.grey300,
-                  width: 0.5,
-                ),
               ),
               pw.SizedBox(height: 20),
 
@@ -551,11 +428,9 @@ class _EditReportPageState extends State<EditReportPage> {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Text("Tasks Total: \$${taskTotal.toStringAsFixed(2)}"),
                     pw.Text(
                       "Expenses Total: \$${expenseTotal.toStringAsFixed(2)}",
                     ),
-                    pw.Text("Grand Total: \$${grandTotal.toStringAsFixed(2)}"),
                     pw.Text("Tax (13%): \$${tax.toStringAsFixed(2)}"),
                     pw.Text(
                       "Final Total: \$${finalTotal.toStringAsFixed(2)}",

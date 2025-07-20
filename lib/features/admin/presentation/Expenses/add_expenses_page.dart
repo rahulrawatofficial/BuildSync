@@ -36,7 +36,6 @@ class _AddExpensePageState extends State<AddExpensePage> {
       'details': _detailsController.text.trim(),
       'amount': double.tryParse(_amountController.text.trim()) ?? 0,
       'category': _category,
-      // 'paidBy': AppSessionManager().userId, // or name
       'date': FieldValue.serverTimestamp(),
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -59,77 +58,125 @@ class _AddExpensePageState extends State<AddExpensePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Add Expense')),
-      body:
-          _loading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Expense Name',
-                        ),
-                        validator:
-                            (value) =>
-                                value == null || value.trim().isEmpty
-                                    ? 'Expense name is required'
-                                    : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _detailsController,
-                        decoration: const InputDecoration(labelText: 'Details'),
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _amountController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Amount'),
-                        validator:
-                            (value) =>
-                                value == null || double.tryParse(value) == null
-                                    ? 'Enter valid amount'
-                                    : null,
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        value: _category,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Material',
-                            child: Text('Material'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Labor',
-                            child: Text('Labor'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Misc',
-                            child: Text('Miscellaneous'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) setState(() => _category = value);
-                        },
-                      ),
-                      const SizedBox(height: 32),
-                      ElevatedButton.icon(
-                        onPressed: _submit,
-                        icon: const Icon(Icons.check),
-                        label: const Text('Add Expense'),
-                      ),
-                    ],
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  _buildTextField(
+                    controller: _nameController,
+                    label: 'Expense Name',
+                    validator:
+                        (value) =>
+                            value == null || value.trim().isEmpty
+                                ? 'Expense name is required'
+                                : null,
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _detailsController,
+                    label: 'Details',
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _amountController,
+                    label: 'Amount',
+                    keyboardType: TextInputType.number,
+                    validator:
+                        (value) =>
+                            value == null || double.tryParse(value) == null
+                                ? 'Enter valid amount'
+                                : null,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDropdown(),
+                ],
               ),
+            ),
+          ),
+          _buildBottomButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    String? Function(String?)? validator,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      validator: validator,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        // fillColor: Colors.grey.shade50,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _category,
+      decoration: InputDecoration(
+        labelText: 'Category',
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'Material', child: Text('Material')),
+        DropdownMenuItem(value: 'Labor', child: Text('Labor')),
+        DropdownMenuItem(value: 'Misc', child: Text('Miscellaneous')),
+      ],
+      onChanged: (value) => setState(() => _category = value ?? 'Material'),
+    );
+  }
+
+  Widget _buildBottomButton() {
+    return Positioned(
+      bottom: 16,
+      left: 16,
+      right: 16,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          // backgroundColor: Colors.blueAccent,
+          elevation: 3,
+        ),
+        onPressed: _loading ? null : _submit,
+        child:
+            _loading
+                ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+                : const Text(
+                  'Add Expense',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+      ),
     );
   }
 }
