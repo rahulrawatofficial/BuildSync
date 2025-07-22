@@ -15,23 +15,21 @@ BuildSync is a Flutter-based **project management app** designed for constructio
 
 ## Screenshots
 
-## Screenshots
+| Login | Signup | Subscription |
+|-------|--------|--------------|
+| ![Login](docs/screenshots/login.png) | ![Signup](docs/screenshots/signup.png) | ![Subscription](docs/screenshots/subscription.png) |
 
-<p align="center">
-  <img src="docs/screenshots/login.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <img src="docs/screenshots/signup.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <img src="docs/screenshots/subscription.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <br><br>
-  <img src="docs/screenshots/dashboard.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <img src="docs/screenshots/add_project.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <img src="docs/screenshots/drawer.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <br><br>
-  <img src="docs/screenshots/report.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <img src="docs/screenshots/pdf.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <img src="docs/screenshots/taks.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-  <br><br>
-  <img src="docs/screenshots/expenses.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
-</p>
+| Dashboard | Add Project | Drawer |
+|-----------|-------------|--------|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Add Project](docs/screenshots/add_project.png) | ![Drawer](docs/screenshots/drawer.png) |
+
+| Report | PDF | Tasks |
+|--------|-----|-------|
+| ![Report](docs/screenshots/report.png) | ![PDF](docs/screenshots/pdf.png) | ![Tasks](docs/screenshots/taks.png) |
+
+| Expenses |  |  |
+|----------|----|----|
+| ![Expenses](docs/screenshots/expenses.png) | | |
 
 ---
 
