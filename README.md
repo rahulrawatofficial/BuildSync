@@ -15,20 +15,22 @@ BuildSync is a Flutter-based **project management app** designed for constructio
 
 ## Screenshots
 
+## Screenshots
+
 <p align="center">
-  <img src="docs/screenshots/login.png" width="200" />
-  <img src="docs/screenshots/signup.png" width="200" />
-  <img src="docs/screenshots/subscription.png" width="200" />
+  <img src="docs/screenshots/login.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
+  <img src="docs/screenshots/signup.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
+  <img src="docs/screenshots/subscription.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
   <br><br>
-  <img src="docs/screenshots/dashboard.png" width="200" />
-  <img src="docs/screenshots/add_project.png" width="200" />
-  <img src="docs/screenshots/drawer.png" width="200" />
+  <img src="docs/screenshots/dashboard.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
+  <img src="docs/screenshots/add_project.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
+  <img src="docs/screenshots/drawer.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
   <br><br>
-  <img src="docs/screenshots/report.png" width="200" />
-  <img src="docs/screenshots/pdf.png" width="200" />
-  <img src="docs/screenshots/taks.png" width="200" />
+  <img src="docs/screenshots/report.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
+  <img src="docs/screenshots/pdf.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
+  <img src="docs/screenshots/taks.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
   <br><br>
-  <img src="docs/screenshots/expenses.png" width="200" />
+  <img src="docs/screenshots/expenses.png" width="200" style="border:1px solid #ccc; border-radius:8px; padding:2px;" />
 </p>
 
 ---
