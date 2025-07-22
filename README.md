@@ -17,19 +17,19 @@ BuildSync is a Flutter-based **project management app** designed for constructio
 
 | Login | Signup | Subscription |
 |-------|--------|--------------|
-| ![Login](docs/screenshots/login.png) | ![Signup](docs/screenshots/signup.png) | ![Subscription](docs/screenshots/subscription.png) |
+| <img src="docs/screenshots/login.png" width="200"/> | <img src="docs/screenshots/signup.png" width="200"/> | <img src="docs/screenshots/subscription.png" width="200"/> |
 
 | Dashboard | Add Project | Drawer |
 |-----------|-------------|--------|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Add Project](docs/screenshots/add_project.png) | ![Drawer](docs/screenshots/drawer.png) |
+| <img src="docs/screenshots/dashboard.png" width="200"/> | <img src="docs/screenshots/add_project.png" width="200"/> | <img src="docs/screenshots/drawer.png" width="200"/> |
 
 | Report | PDF | Tasks |
 |--------|-----|-------|
-| ![Report](docs/screenshots/report.png) | ![PDF](docs/screenshots/pdf.png) | ![Tasks](docs/screenshots/taks.png) |
+| <img src="docs/screenshots/report.png" width="200"/> | <img src="docs/screenshots/pdf.png" width="200"/> | <img src="docs/screenshots/tasks.png" width="200"/> |
 
 | Expenses |  |  |
 |----------|----|----|
-| ![Expenses](docs/screenshots/expenses.png) | | |
+| <img src="docs/screenshots/expenses.png" width="200"/> |  |  |
 
 ---
 
