@@ -15,9 +15,16 @@ BuildSync is a Flutter-based **project management app** designed for constructio
 
 ## Screenshots
 <p align="center">
+<img src="docs/screenshots/login.png" width="200" />
+  <img src="docs/screenshots/signup.png" width="200" />
+  <img src="docs/screenshots/subscription.png" width="200" />
   <img src="docs/screenshots/dashboard.png" width="200" />
-  <img src="docs/screenshots/project_list.png" width="200" />
   <img src="docs/screenshots/add_project.png" width="200" />
+  <img src="docs/screenshots/drawer.png" width="200" />
+  <img src="docs/screenshots/report.png" width="200" />
+  <img src="docs/screenshots/pdf.png" width="200" />
+  <img src="docs/screenshots/taks.png" width="200" />
+  <img src="docs/screenshots/expenses.png" width="200" />
 </p>
 
 ---
