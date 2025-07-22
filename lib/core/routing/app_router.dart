@@ -1,4 +1,3 @@
-import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/core/routing/router_utils.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/add_expenses_page.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/edit_expenses_page.dart';
@@ -15,7 +14,9 @@ import 'package:buildsync/features/admin/presentation/Tasks/edit_task_page.dart'
 import 'package:buildsync/features/admin/presentation/Workers/edit_worker_page.dart';
 import 'package:buildsync/features/admin/presentation/Tasks/task_list_page.dart';
 import 'package:buildsync/features/admin/presentation/Workers/worker_list_page.dart';
+import 'package:buildsync/features/auth/presentation/signup_page.dart';
 import 'package:buildsync/features/auth/presentation/splash_page.dart';
+import 'package:buildsync/features/auth/presentation/subscription_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_page.dart';
@@ -30,16 +31,28 @@ class AppRouter {
     redirect: (context, state) {
       final location = state.uri.toString();
       final isLoggedIn = FirebaseAuth.instance.currentUser != null;
-      final isLoggingIn = location == '/login';
 
-      if (!isLoggedIn && location != '/login') return '/login';
-      if (isLoggedIn && isLoggingIn) return '/home';
+      final isAuthPage =
+          location == '/login' ||
+          location == '/signup' ||
+          location == '/subscription';
+
+      // If not logged in, allow /login and /signup, otherwise go to login
+      if (!isLoggedIn && !isAuthPage) return '/login';
+
+      // If logged in, don't allow going back to login/signup
+      if (isLoggedIn && isAuthPage) return '/home';
 
       return null;
     },
     routes: [
       GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
+      GoRoute(
+        path: '/subscription',
+        builder: (context, state) => const SubscriptionPage(),
+      ),
       GoRoute(
         path: '/home',
         builder: (context, state) => const AdminDashboard(),
