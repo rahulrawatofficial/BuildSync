@@ -17,7 +17,7 @@ BuildSync is a Flutter-based **project management app** designed for constructio
 
 | Login | Signup | Subscription |
 |-------|--------|--------------|
-| <img src="docs/screenshots/login.png" width="200"/> | <img src="docs/screenshots/signup.png" width="200"/> | <img src="docs/screenshots/subscription.png" width="200"/> |
+| <img src="docs/screenshots/login.png" width="200"/> | <img src="docs/screenshots/signup1.png" width="200"/> | <img src="docs/screenshots/subscription.png" width="200"/> |
 
 | Dashboard | Add Project | Drawer |
 |-----------|-------------|--------|
@@ -25,7 +25,7 @@ BuildSync is a Flutter-based **project management app** designed for constructio
 
 | Report | PDF | Tasks |
 |--------|-----|-------|
-| <img src="docs/screenshots/report.png" width="200"/> | <img src="docs/screenshots/pdf.png" width="200"/> | <img src="docs/screenshots/tasks.png" width="200"/> |
+| <img src="docs/screenshots/report.png" width="200"/> | <img src="docs/screenshots/pdf1.png" width="200"/> | <img src="docs/screenshots/tasks.png" width="200"/> |
 
 | Expenses |  |  |
 |----------|----|----|
