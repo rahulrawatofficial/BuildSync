@@ -1,21 +1,27 @@
-<<<<<<< HEAD
-# BuildSync
-Construction Project Management App
-=======
-# buildsync
+# BuildSync - Project Management App
 
-A new Flutter project.
+BuildSync is a Flutter-based **project management app** designed for construction and painting businesses.  
+(Currently, the **Admin Dashboard** is ready. Worker app features are coming soon.)
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## Features (Current)
+- Add and manage projects
+- Track ongoing tasks
+- Generate quotes and invoices (PDF generation)
+- Firebase backend with real-time data sync
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Screenshots
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" width="200" />
+  <img src="docs/screenshots/project_list.png" width="200" />
+  <img src="docs/screenshots/add_project.png" width="200" />
+</p>
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
->>>>>>> 9868597 (Initial commit: project structure)
+---
+
+## Upcoming
+- Worker App (for job assignments and updates)
+- Subscription-based SaaS model
