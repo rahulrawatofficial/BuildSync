@@ -1,4 +1,5 @@
 import 'package:buildsync/core/config/app_setion_manager.dart';
+import 'package:buildsync/features/admin/presentation/admin_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +27,7 @@ class _TaskListPageState extends State<TaskListPage> {
     final companyId = AppSessionManager().companyId!;
 
     return Scaffold(
+      drawer: const AdminDrawer(selectedRoute: '/task-list'),
       appBar: AppBar(title: const Text('Project Tasks')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -91,6 +91,13 @@ class AppRouter {
         },
       ),
       GoRoute(
+        path: '/task-list/:initialProjectId',
+        builder: (context, state) {
+          final projectId = state.pathParameters['initialProjectId']!;
+          return TaskListPage(initialProjectId: projectId);
+        },
+      ),
+      GoRoute(
         path: '/task-list',
         builder: (context, state) => const TaskListPage(),
       ),
@@ -107,6 +114,13 @@ class AppRouter {
           final projectId = state.pathParameters['projectId']!;
           final taskId = state.pathParameters['taskId']!;
           return EditTaskPage(projectId: projectId, taskId: taskId);
+        },
+      ),
+      GoRoute(
+        path: '/expense-list/:initialProjectId',
+        builder: (context, state) {
+          final projectId = state.pathParameters['initialProjectId']!;
+          return ExpenseListPage(initialProjectId: projectId);
         },
       ),
       GoRoute(

@@ -2,11 +2,14 @@ import 'dart:math';
 
 import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/core/theme/theme_constants.dart';
+import 'package:buildsync/features/admin/presentation/Project/project_action_sheet.dart';
+import 'package:buildsync/features/admin/presentation/admin_drawer.dart';
 import 'package:buildsync/global/blocs/auth_cubit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -37,7 +40,7 @@ class AdminDashboard extends StatelessWidget {
     int upcomingDeadlines = 0;
 
     DateTime now = DateTime.now();
-    DateTime weekEnd = now.add(Duration(days: 7));
+    DateTime weekEnd = now.add(const Duration(days: 7));
 
     for (var projectDoc in projectsSnapshot.docs) {
       final tasksSnapshot =
@@ -91,7 +94,7 @@ class AdminDashboard extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Admin Dashboard')),
-      drawer: const AdminDrawer(),
+      drawer: AdminDrawer(selectedRoute: "/home"),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -102,7 +105,7 @@ class AdminDashboard extends StatelessWidget {
               future: _fetchDashboardData(companyId),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
+                  return _buildShimmerSummaryCards();
                 }
 
                 final data = snapshot.data!;
@@ -175,7 +178,7 @@ class AdminDashboard extends StatelessWidget {
                       .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return _buildShimmerProjectList();
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Text('No ongoing projects');
@@ -199,7 +202,28 @@ class AdminDashboard extends StatelessWidget {
                       ),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(14),
-                        onTap: () => context.push('/edit-project/${doc.id}'),
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                            ),
+                            builder:
+                                (_) => ProjectActionSheet(
+                                  projectName:
+                                      project['title'] ?? 'Untitled Project',
+                                  projectId: doc.id,
+                                  onEditProject:
+                                      (id) => context.push('/edit-project/$id'),
+                                  onAddExpense:
+                                      (id) => context.push('/expense-list/$id'),
+                                  onAddTask:
+                                      (id) => context.push('/task-list/$id'),
+                                ),
+                          );
+                        },
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Row(
@@ -300,6 +324,7 @@ class AdminDashboard extends StatelessWidget {
     );
   }
 
+  /// -------------------- SUMMARY CARDS --------------------
   Widget _buildSummaryCard({
     required String title,
     required int count,
@@ -308,27 +333,95 @@ class AdminDashboard extends StatelessWidget {
   }) {
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.8), color.withOpacity(0.5)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.4),
+              blurRadius: 8,
+              offset: const Offset(2, 4),
+            ),
+          ],
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 8),
+            CircleAvatar(
+              backgroundColor: Colors.white.withOpacity(0.2),
+              radius: 22,
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 10),
             Text(
               '$count',
-              style: TextStyle(
-                fontSize: 24,
+              style: const TextStyle(
+                fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 4),
-            Text(title, style: const TextStyle(fontSize: 16)),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, color: Colors.white70),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// -------------------- SHIMMER PLACEHOLDERS --------------------
+  Widget _buildShimmerSummaryCards() {
+    return Column(
+      children: [
+        Row(children: [_buildShimmerCard(), _buildShimmerCard()]),
+        const SizedBox(height: 12),
+        Row(children: [_buildShimmerCard(), _buildShimmerCard()]),
+      ],
+    );
+  }
+
+  Widget _buildShimmerCard() {
+    return Expanded(
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey.shade300,
+        highlightColor: Colors.grey.shade100,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerProjectList() {
+    return Column(
+      children: List.generate(
+        3,
+        (index) => Shimmer.fromColors(
+          baseColor: Colors.grey.shade300,
+          highlightColor: Colors.grey.shade100,
+          child: Container(
+            height: 80,
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
         ),
       ),
     );
@@ -343,82 +436,5 @@ class AdminDashboard extends StatelessWidget {
       default:
         return Colors.grey.shade300;
     }
-  }
-}
-
-class AdminDrawer extends StatelessWidget {
-  const AdminDrawer({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    String? userName = AppSessionManager().name;
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: primaryColor),
-            child: Row(
-              children: [
-                Container(
-                  height: 50,
-                  width: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  clipBehavior: Clip.hardEdge,
-                  child: Image.asset("assets/images/adp.png"),
-                ),
-                const SizedBox(width: 20),
-                Text(
-                  userName ?? 'Admin',
-                  style: const TextStyle(color: Colors.white, fontSize: 24),
-                ),
-              ],
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.dashboard, color: Colors.green),
-            title: const Text('Dashboard'),
-            // onTap: () => context.go('/admin'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.people, color: Colors.amber),
-            title: const Text('Workers'),
-            onTap: () => context.push('/worker-list'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.task, color: Colors.purple),
-            title: const Text('Tasks'),
-            onTap: () => context.push('/task-list'),
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.monetization_on_outlined,
-              color: Colors.brown,
-            ),
-            title: const Text('Expenses'),
-            onTap: () => context.push('/expense-list'),
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.document_scanner_outlined,
-              color: Colors.lightGreen,
-            ),
-            title: const Text('Reports'),
-            onTap: () => context.push('/reports-list'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout', style: TextStyle(color: Colors.red)),
-            onTap: () async {
-              await context.read<AuthCubit>().signOut();
-              context.go('/login');
-            },
-          ),
-        ],
-      ),
-    );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:buildsync/core/config/app_setion_manager.dart';
+import 'package:buildsync/features/admin/presentation/admin_drawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ class WorkerListPage extends StatelessWidget {
     final companyId = AppSessionManager().companyId;
 
     return Scaffold(
+      drawer: const AdminDrawer(selectedRoute: '/worker-list'),
       appBar: AppBar(title: const Text('Team Members'), elevation: 0),
       body: Container(
         padding: const EdgeInsets.all(16),
@@ -65,11 +67,14 @@ class WorkerListPage extends StatelessWidget {
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeInOut,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor, // Adaptive to theme
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.1),
+                          color:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.black.withOpacity(0.4)
+                                  : Colors.green.withOpacity(0.1),
                           blurRadius: 6,
                           offset: const Offset(0, 3),
                         ),

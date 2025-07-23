@@ -65,6 +65,7 @@ class _EditExpensePageState extends State<EditExpensePage> {
       'amount': double.tryParse(_amountController.text.trim()) ?? 0,
       'category': _category,
       'updatedAt': FieldValue.serverTimestamp(),
+      'companyId': companyId,
     };
 
     await FirebaseFirestore.instance

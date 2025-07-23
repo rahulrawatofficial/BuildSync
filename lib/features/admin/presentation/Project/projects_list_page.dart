@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:buildsync/core/config/app_setion_manager.dart';
+import 'package:buildsync/features/admin/presentation/Project/project_action_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -73,7 +74,27 @@ class ProjectsListPage extends StatelessWidget {
                   ),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(14),
-                    onTap: () => context.push('/edit-project/${doc.id}'),
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
+                        ),
+                        builder:
+                            (_) => ProjectActionSheet(
+                              projectName:
+                                  project['title'] ?? 'Untitled Project',
+                              projectId: doc.id,
+                              onEditProject:
+                                  (id) => context.push('/edit-project/$id'),
+                              onAddExpense:
+                                  (id) => context.push('/expense-list/$id'),
+                              onAddTask: (id) => context.push('/task-list/$id'),
+                            ),
+                      );
+                    },
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Row(

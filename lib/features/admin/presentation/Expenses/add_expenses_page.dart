@@ -36,6 +36,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
       'details': _detailsController.text.trim(),
       'amount': double.tryParse(_amountController.text.trim()) ?? 0,
       'category': _category,
+      'companyId': companyId,
       'date': FieldValue.serverTimestamp(),
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),

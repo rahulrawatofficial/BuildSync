@@ -1,4 +1,5 @@
 import 'package:buildsync/core/config/app_setion_manager.dart';
+import 'package:buildsync/features/admin/presentation/admin_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +27,7 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
     final companyId = AppSessionManager().companyId!;
 
     return Scaffold(
+      drawer: const AdminDrawer(selectedRoute: '/expense-list'),
       appBar: AppBar(title: const Text('Project Expenses')),
       body: Column(
         children: [
