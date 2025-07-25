@@ -3,6 +3,9 @@ import 'package:buildsync/features/admin/presentation/Expenses/add_expenses_page
 import 'package:buildsync/features/admin/presentation/Expenses/edit_expenses_page.dart';
 import 'package:buildsync/features/admin/presentation/Expenses/expenses_list_page.dart';
 import 'package:buildsync/features/admin/presentation/Project/projects_list_page.dart';
+import 'package:buildsync/features/admin/presentation/Quote/quote_form.dart';
+import 'package:buildsync/features/admin/presentation/Quote/quote_list_page.dart';
+import 'package:buildsync/features/admin/presentation/Quote/quote_pdf_view.dart';
 import 'package:buildsync/features/admin/presentation/Reports/edit_reports_page.dart';
 import 'package:buildsync/features/admin/presentation/Reports/reports_list_page.dart';
 import 'package:buildsync/features/admin/presentation/Tasks/add_task_page.dart';
@@ -18,6 +21,7 @@ import 'package:buildsync/features/auth/presentation/signup_page.dart';
 import 'package:buildsync/features/auth/presentation/splash_page.dart';
 import 'package:buildsync/features/auth/presentation/subscription_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_page.dart';
 // import '../../features/home/presentation/home_page.dart';
@@ -151,6 +155,40 @@ class AppRouter {
         builder: (context, state) {
           final projectId = state.pathParameters['projectId']!;
           return EditReportPage(projectId: projectId);
+        },
+      ),
+      GoRoute(
+        path: '/quote-list/:companyId/:projectId',
+        builder: (context, state) {
+          return QuoteListPage(
+            companyId: state.pathParameters['companyId']!,
+            projectId: state.pathParameters['projectId']!,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/quote-pdf-view',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra == null || extra is! List<int>) {
+            return const Scaffold(
+              body: Center(child: Text('Invalid PDF data')),
+            );
+          }
+
+          return QuotePdfViewPage(pdfBytes: extra);
+        },
+      ),
+      GoRoute(
+        path: '/quote-form',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return QuoteFormPage(
+            companyId: extra['companyId'],
+            projectId: extra['projectId'],
+            quoteId: extra['quoteId'],
+            quoteData: extra['quoteData'],
+          );
         },
       ),
     ],

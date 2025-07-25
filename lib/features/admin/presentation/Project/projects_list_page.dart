@@ -92,6 +92,8 @@ class ProjectsListPage extends StatelessWidget {
                               onAddExpense:
                                   (id) => context.push('/expense-list/$id'),
                               onAddTask: (id) => context.push('/task-list/$id'),
+                              onGenerateQuote:
+                                  (id) => context.push('/quote-form'),
                             ),
                       );
                     },

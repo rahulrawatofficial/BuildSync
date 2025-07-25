@@ -6,6 +6,7 @@ class ProjectActionSheet extends StatelessWidget {
   final Function(String projectId) onEditProject;
   final Function(String projectId) onAddExpense;
   final Function(String projectId) onAddTask;
+  final Function(String projectId) onGenerateQuote;
 
   const ProjectActionSheet({
     super.key,
@@ -14,6 +15,7 @@ class ProjectActionSheet extends StatelessWidget {
     required this.onEditProject,
     required this.onAddExpense,
     required this.onAddTask,
+    required this.onGenerateQuote,
   });
 
   @override
@@ -25,7 +27,7 @@ class ProjectActionSheet extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: theme.cardColor, // Adapts to dark theme
+          color: theme.cardColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
@@ -38,7 +40,6 @@ class ProjectActionSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle + Close Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -57,8 +58,6 @@ class ProjectActionSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-
-            // Project Name
             Text(
               projectName,
               style: theme.textTheme.titleMedium?.copyWith(
@@ -70,7 +69,6 @@ class ProjectActionSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Action Buttons
             _buildActionTile(
               theme: theme,
               icon: Icons.edit,
@@ -101,6 +99,16 @@ class ProjectActionSheet extends StatelessWidget {
                 onAddTask(projectId);
               },
             ),
+            _buildActionTile(
+              theme: theme,
+              icon: Icons.request_quote_outlined,
+              iconColor: Colors.purple,
+              title: 'Generate Quote',
+              onTap: () {
+                Navigator.pop(context);
+                onGenerateQuote(projectId);
+              },
+            ),
             const SizedBox(height: 10),
           ],
         ),
@@ -116,7 +124,7 @@ class ProjectActionSheet extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Card(
-      color: theme.colorScheme.surface, // Adapts for dark theme
+      color: theme.colorScheme.surface,
       elevation: 1,
       margin: const EdgeInsets.symmetric(vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

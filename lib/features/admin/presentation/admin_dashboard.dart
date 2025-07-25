@@ -221,6 +221,10 @@ class AdminDashboard extends StatelessWidget {
                                       (id) => context.push('/expense-list/$id'),
                                   onAddTask:
                                       (id) => context.push('/task-list/$id'),
+                                  onGenerateQuote:
+                                      (id) => context.push(
+                                        '/quote-list/$companyId/$id',
+                                      ),
                                 ),
                           );
                         },

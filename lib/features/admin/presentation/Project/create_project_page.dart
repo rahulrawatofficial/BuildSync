@@ -48,6 +48,8 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
           'startDate': startDate?.toIso8601String(),
           'endDate': endDate?.toIso8601String(),
           'notes': notes,
+          'updatedAt': DateTime.now().toIso8601String(),
+          'companyId': companyId,
           'expenses':
               expenses
                   .where((e) => (e['title'] ?? '').toString().isNotEmpty)
@@ -60,8 +62,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
                     },
                   )
                   .toList(),
-          'createdAt': DateTime.now().toIso8601String(),
-          'companyId': companyId,
+          // 'imageUrls': imageUrls,
         });
 
     setState(() => isLoading = false);
