@@ -63,6 +63,7 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
                   )
                   .toList(),
           // 'imageUrls': imageUrls,
+          'createdAt': FieldValue.serverTimestamp(),
         });
 
     setState(() => isLoading = false);
