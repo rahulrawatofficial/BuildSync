@@ -174,7 +174,7 @@ class AdminDashboard extends StatelessWidget {
                       .doc(companyId)
                       .collection('projects')
                       .where('status', isNotEqualTo: 'completed')
-                      .limit(3)
+                      // .limit(3)
                       .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
