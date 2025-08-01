@@ -122,20 +122,20 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 16),
 
                         // Sign Up Navigation
-                        Center(
-                          child: TextButton(
-                            onPressed: () {
-                              context.push('/signup');
-                            },
-                            child: const Text(
-                              "Don't have an account? Sign Up",
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
+                        // Center(
+                        //   child: TextButton(
+                        //     onPressed: () {
+                        //       context.push('/signup');
+                        //     },
+                        //     child: const Text(
+                        //       "Don't have an account? Sign Up",
+                        //       style: TextStyle(
+                        //         color: Colors.blue,
+                        //         fontWeight: FontWeight.bold,
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     );
                   },
