@@ -11,8 +11,51 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
+
+  @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
+  String? _companyId;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSessionData();
+  }
+
+  Future<void> _loadSessionData() async {
+    await AppSessionManager().loadSession();
+    if (mounted) {
+      setState(() {
+        _companyId = AppSessionManager().companyId;
+        _isLoading = false;
+      });
+      
+              // If companyId is still null, check auth cubit state
+        if (_companyId == null) {
+          print('DEBUG: CompanyId is null, checking auth cubit...');
+          final authState = context.read<AuthCubit>().state;
+          if (authState is AuthSuccess) {
+            setState(() {
+              _companyId = authState.companyId;
+              _isLoading = false;
+            });
+          } else {
+            // Try loading again after a short delay
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                _loadSessionData();
+              }
+            });
+          }
+        }
+    }
+  }
 
   Future<Map<String, dynamic>> _fetchDashboardData(String companyId) async {
     final firestore = FirebaseFirestore.instance;
@@ -78,7 +121,13 @@ class AdminDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final companyId = AppSessionManager().companyId!;
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    print('DEBUG: AdminDashboard - companyId: $_companyId');
     final _random = Random();
     Color _randomColor() {
       final colors = [
@@ -92,6 +141,17 @@ class AdminDashboard extends StatelessWidget {
       return colors[_random.nextInt(colors.length)];
     }
 
+    // Check if companyId is null and handle appropriately
+    if (_companyId == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Admin Dashboard')),
+        drawer: AdminDrawer(selectedRoute: "/home"),
+        body: const Center(
+          child: CircularProgressIndicator()
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Admin Dashboard')),
       drawer: AdminDrawer(selectedRoute: "/home"),
@@ -102,7 +162,7 @@ class AdminDashboard extends StatelessWidget {
           children: [
             /// -------------------- SUMMARY CARDS --------------------
             FutureBuilder<Map<String, dynamic>>(
-              future: _fetchDashboardData(companyId),
+              future: _fetchDashboardData(_companyId!),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return _buildShimmerSummaryCards();
@@ -171,7 +231,7 @@ class AdminDashboard extends StatelessWidget {
               stream:
                   FirebaseFirestore.instance
                       .collection('companies')
-                      .doc(companyId)
+                      .doc(_companyId)
                       .collection('projects')
                       .where('status', isNotEqualTo: 'completed')
                       // .limit(3)
@@ -223,7 +283,7 @@ class AdminDashboard extends StatelessWidget {
                                       (id) => context.push('/task-list/$id'),
                                   onGenerateQuote:
                                       (id) => context.push(
-                                        '/quote-list/$companyId/$id',
+                                        '/quote-list/$_companyId/$id',
                                       ),
                                 ),
                           );

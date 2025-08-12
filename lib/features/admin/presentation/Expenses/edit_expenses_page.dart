@@ -29,8 +29,12 @@ class _EditExpensePageState extends State<EditExpensePage> {
   @override
   void initState() {
     super.initState();
-    companyId = AppSessionManager().companyId!;
-    _loadExpense();
+    companyId = AppSessionManager().companyId ?? '';
+    if (companyId.isNotEmpty) {
+      _loadExpense();
+    } else {
+      setState(() => _loading = false);
+    }
   }
 
   Future<void> _loadExpense() async {
@@ -124,6 +128,15 @@ class _EditExpensePageState extends State<EditExpensePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (companyId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Edit Expense')),
+        body: const Center(
+          child: Text('Company ID not found. Please contact administrator.'),
+        ),
+      );
+    }
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Expense'),

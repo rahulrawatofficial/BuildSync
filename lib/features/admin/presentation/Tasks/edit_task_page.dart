@@ -37,8 +37,12 @@ class _EditTaskPageState extends State<EditTaskPage> {
   @override
   void initState() {
     super.initState();
-    companyId = AppSessionManager().companyId!;
-    _loadTask();
+    companyId = AppSessionManager().companyId ?? '';
+    if (companyId.isNotEmpty) {
+      _loadTask();
+    } else {
+      setState(() => _loading = false);
+    }
   }
 
   Future<void> _loadTask() async {
@@ -165,6 +169,15 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (companyId == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Edit Task')),
+        body: const Center(
+          child: Text('Company ID not found. Please contact administrator.'),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Task'),

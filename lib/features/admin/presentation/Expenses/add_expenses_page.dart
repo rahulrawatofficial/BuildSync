@@ -23,7 +23,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
   @override
   void initState() {
     super.initState();
-    companyId = AppSessionManager().companyId!;
+    companyId = AppSessionManager().companyId ?? '';
   }
 
   Future<void> _submit() async {
@@ -57,6 +57,15 @@ class _AddExpensePageState extends State<AddExpensePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (companyId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Add Expense')),
+        body: const Center(
+          child: Text('Company ID not found. Please contact administrator.'),
+        ),
+      );
+    }
+    
     return Scaffold(
       appBar: AppBar(title: const Text('Add Expense')),
       body: Stack(

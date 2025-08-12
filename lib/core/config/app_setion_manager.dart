@@ -24,4 +24,12 @@ class AppSessionManager {
     email = null;
     role = null;
   }
+
+  Future<void> saveSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (companyId != null) await prefs.setString('companyId', companyId!);
+    if (name != null) await prefs.setString('name', name!);
+    if (email != null) await prefs.setString('email', email!);
+    if (role != null) await prefs.setString('role', role!);
+  }
 }

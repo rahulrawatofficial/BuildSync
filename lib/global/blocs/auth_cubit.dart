@@ -2,6 +2,7 @@ import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/features/auth/data/auth_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'auth_state.dart';
 
@@ -45,9 +46,26 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       final role = userDoc['role'];
+      final userData = userDoc.data() as Map<String, dynamic>;
 
-      // Step 4: Emit success with user data
-      await AppSessionManager().loadSession();
+      // Step 4: Save session data
+      final sessionManager = AppSessionManager();
+      sessionManager.companyId = companyId;
+      sessionManager.name = userData['name'] ?? '';
+      sessionManager.email = userData['email'] ?? '';
+      sessionManager.role = role;
+
+      // Save to SharedPreferences
+      await sessionManager.saveSession();
+
+      // Reload session to ensure it's properly loaded
+      await sessionManager.loadSession();
+
+      // Debug: Print session data
+      print(
+        'DEBUG: Session saved and reloaded - companyId: ${sessionManager.companyId}, name: ${sessionManager.name}, role: ${sessionManager.role}',
+      );
+
       emit(AuthSuccess(uid: uid, companyId: companyId, role: role));
     } catch (e) {
       emit(AuthFailure(e.toString()));
@@ -56,6 +74,15 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> signOut() async {
     await repository.signOut();
+
+    // Clear session data
+    final sessionManager = AppSessionManager();
+    sessionManager.clear();
+
+    // Clear SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
     emit(AuthInitial());
   }
 

@@ -14,6 +14,14 @@ class AuthSuccess extends AuthState {
   AuthSuccess({required this.uid, required this.companyId, required this.role});
 }
 
+class AuthSessionReady extends AuthState {
+  final String uid;
+  final String companyId;
+  final String role;
+
+  AuthSessionReady({required this.uid, required this.companyId, required this.role});
+}
+
 class AuthFailure extends AuthState {
   final String message;
   AuthFailure(this.message);

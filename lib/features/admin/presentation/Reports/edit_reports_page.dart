@@ -18,7 +18,8 @@ class EditReportPage extends StatefulWidget {
 
 class _EditReportPageState extends State<EditReportPage> {
   bool _loading = true;
-  late String companyId;
+  bool _sessionLoading = true;
+  String companyId = '';
   Map<String, dynamic> projectData = {};
   final _notesController = TextEditingController();
 
@@ -27,8 +28,23 @@ class _EditReportPageState extends State<EditReportPage> {
   @override
   void initState() {
     super.initState();
-    companyId = AppSessionManager().companyId!;
-    _loadReportData();
+    _loadSessionAndData();
+  }
+
+  Future<void> _loadSessionAndData() async {
+    await AppSessionManager().loadSession();
+    if (mounted) {
+      setState(() {
+        companyId = AppSessionManager().companyId ?? '';
+        _sessionLoading = false;
+      });
+      
+      if (companyId.isNotEmpty) {
+        _loadReportData();
+      } else {
+        setState(() => _loading = false);
+      }
+    }
   }
 
   Future<void> _loadReportData() async {
@@ -82,8 +98,23 @@ class _EditReportPageState extends State<EditReportPage> {
     }
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
+    if (_sessionLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (companyId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Edit Report')),
+        body: const Center(
+          child: Text('Company ID not found. Please contact administrator.'),
+        ),
+      );
+    }
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Report'),

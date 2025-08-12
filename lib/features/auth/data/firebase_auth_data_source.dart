@@ -1,3 +1,4 @@
+import 'package:buildsync/core/config/app_setion_manager.dart';
 import 'package:buildsync/core/utils/user_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -47,6 +48,8 @@ class FirebaseAuthDataSource implements AuthDataSource {
 
   @override
   Future<void> signOut() async {
+    AppSessionManager().clear();
+    await UserPreferences.clearUserData();
     _companyId = null;
     await _firebaseAuth.signOut();
   }

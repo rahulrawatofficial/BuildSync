@@ -10,7 +10,14 @@ class ReportsListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final companyId = AppSessionManager().companyId!;
+    final companyId = AppSessionManager().companyId;
+    if (companyId == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text('Company ID not found. Please contact administrator.'),
+        ),
+      );
+    }
 
     return Scaffold(
       drawer: const AdminDrawer(selectedRoute: '/reports-list'),
